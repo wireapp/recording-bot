@@ -30,6 +30,7 @@ public class MessageTemplateTest {
         collector.add(newTxtRecord("Dejan", friday, "7"));
         collector.add(newTxtRecord("Lipis", saturday, "8"));
         collector.add(newImageRecord("Lipis", saturday, "ognjiste2", "image/png"));
+        collector.add(newImageRecord("Lipis", saturday, "small", "image/png"));
         collector.add(newTxtRecord("Dejan", saturday, "9"));
         collector.add(newTxtRecord("Dejan", saturday, "10"));
         collector.add(newTxtRecord("Lipis", saturday, "11"));
