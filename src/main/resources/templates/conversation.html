@@ -61,6 +61,9 @@
         text-align: center;
         height: 34px;
       }
+      .sender-row {
+        page-break-inside: avoid;
+      }
       .avatar-td {
         width: 50px;
         vertical-align: top;
@@ -83,7 +86,7 @@
         <td class="date-td" colspan="3">{{ date }}</td>
       </tr>
       {{#senders}}
-      <tr>
+      <tr class="sender-row">
         <td class="avatar-td">
           <div
             class="avatar"
