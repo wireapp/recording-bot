@@ -353,7 +353,7 @@ public class MessageHandler extends MessageHandlerBase {
             }
             case "/public": {
                 channelsDAO.insert(convId, botId);
-                String text = String.format("https://services.%s/recording/channel/%s.html", Util.getDomain(), convId);
+                String text = String.format("https://services.wire.com/recording/channel/%s.html", convId);
                 client.sendText(text, userId);
                 return true;
             }

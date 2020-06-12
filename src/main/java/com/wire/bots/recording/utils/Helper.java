@@ -1,6 +1,5 @@
 package com.wire.bots.recording.utils;
 
-import com.wire.bots.sdk.WireClient;
 import com.wire.bots.sdk.models.MessageAssetBase;
 import com.wire.bots.sdk.tools.Logger;
 import org.commonmark.Extension;
@@ -24,21 +23,15 @@ class Helper {
             .extensions(extensions)
             .build();
 
-    static File getProfile(WireClient client, String key) throws Exception {
+    static File getProfile(byte[] profile, String key) throws Exception {
         String filename = avatarFile(key);
         File file = new File(filename);
 
-        byte[] profile = client.downloadProfilePicture(key);
         Logger.info("downloaded profile: %s, size: %d, file: %s", key, profile.length, file.getAbsolutePath());
         return save(profile, file);
     }
 
-    static File downloadAsset(WireClient client, MessageAssetBase message) throws Exception {
-        byte[] image = client.downloadAsset(message.getAssetKey(),
-                message.getAssetToken(),
-                message.getSha256(),
-                message.getOtrKey());
-
+    static File saveAsset(byte[] image, MessageAssetBase message) throws Exception {
         File file = assetFile(message.getAssetKey(), message.getMimeType());
         return save(image, file);
     }
