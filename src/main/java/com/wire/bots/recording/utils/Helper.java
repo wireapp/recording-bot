@@ -47,7 +47,7 @@ class Helper {
         String extension = getExtension(mimeType);
         if (extension.isEmpty())
             extension = "error";
-        String filename = String.format("images/%s.%s", assetKey, extension);
+        String filename = String.format("recording/images/%s.%s", assetKey, extension);
         return new File(filename);
     }
 
@@ -57,7 +57,7 @@ class Helper {
     }
 
     static String avatarFile(String key) {
-        return String.format("avatars/%s.png", key);
+        return String.format("recording/avatars/%s.png", key);
     }
 
     @Nullable

@@ -40,9 +40,9 @@ public class ConversationTemplateTest {
         return ret;
     }
 
-    private static EditedTextMessage edit(UUID userId, String edit, String time) {
+    private static EditedTextMessage edit(UUID userId, String text, String time) {
         EditedTextMessage ret = new EditedTextMessage(UUID.randomUUID(), UUID.randomUUID(), "", userId);
-        ret.setText(edit);
+        ret.setText(text);
         ret.setTime(time);
         return ret;
     }

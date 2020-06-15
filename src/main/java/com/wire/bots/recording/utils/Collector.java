@@ -27,6 +27,7 @@ public class Collector {
     private static String regex = "http(?:s)?://(?:www\\.)?youtu(?:\\.be/|be\\.com/(?:watch\\?v=|v/|embed/" +
             "|user/(?:[\\w#]+/)+))([^&#?\\n]+)";
     private static Pattern p = Pattern.compile(regex);
+    private String base = "/recording";
 
     public Collector(Cache cache) {
 
@@ -249,7 +250,7 @@ public class Collector {
 
     @Nullable
     private String systemIcon(String type) {
-        final String base = "/recording/assets/";
+        final String base = String.format("%s/assets/", this.base);
         switch (type) {
             case "conversation.create":
                 return base + "icons8-record-48.png";
@@ -302,8 +303,7 @@ public class Collector {
     }
 
     private String getFilename(File file) {
-
-        return String.format("/recording/%s/%s", "images", file.getName());
+        return String.format("%s/%s/%s", base, "images", file.getName());
     }
 
     @Nullable
@@ -312,7 +312,7 @@ public class Collector {
         String profileAssetKey = getProfileAssetKey(user);
         if (profileAssetKey != null) {
             File file = cache.getProfileImage(profileAssetKey);
-            return String.format("/recording/%s/%s", "avatars", file.getName());
+            return String.format("%s/%s/%s", base, "avatars", file.getName());
         }
         return null;
     }
@@ -455,5 +455,13 @@ public class Collector {
         List<Message> getMessages() {
             return messages;
         }
+    }
+
+    public String getBase() {
+        return base;
+    }
+
+    public void setBase(String base) {
+        this.base = base;
     }
 }

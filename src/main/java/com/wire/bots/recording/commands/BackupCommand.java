@@ -93,7 +93,7 @@ public class BackupCommand extends ConfiguredCommand<Config> {
                         edit.setText(event.data.content);
                         edit.setTime(event.editedTime);
                         edit.setReplacingMessageId(event.data.replacingMessageId);
-                        collector.add(edit);
+                        collector.addEdit(edit);
                     } else {
                         final TextMessage txt = new TextMessage(event.id, event.conversation, null, event.from);
                         txt.setTime(event.time);
@@ -140,9 +140,9 @@ public class BackupCommand extends ConfiguredCommand<Config> {
             }
         }
 
-        collector.setConvName("Test");
+        collector.setConvName("Test Conversation");
         final String html = collector.execute();
-        PdfGenerator.save("test.pdf", html, "file:");
+        PdfGenerator.save("Recording Test.pdf", html, "file:/Users/dejankovacevic/Projects/recording-bot");
     }
 
     private byte[] toArray(HashMap<String, Byte> otrKey) {
