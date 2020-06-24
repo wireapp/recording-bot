@@ -39,8 +39,7 @@ public class PdfGenerator {
     }
 
     private static void build(String html, String baseUrl, OutputStream out) throws Exception {
-        builder
-                .useUriResolver((bu, uri) -> {
+        builder.useUriResolver((bu, uri) -> {
                     if (uri.contains(":"))
                         return uri.contains(".") ? uri : null;
                     return bu + uri;

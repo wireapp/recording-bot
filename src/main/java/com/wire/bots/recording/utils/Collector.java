@@ -204,8 +204,8 @@ public class Collector {
      * @throws ParseException
      */
     public boolean addSystem(String text, String dateTime, String type, UUID msgId) throws ParseException {
-        if (lastMessage != null && lastMessage.timeStamp.equals(dateTime))
-            return false;
+//        if (lastMessage != null && lastMessage.timeStamp.equals(dateTime))
+//            return false;
 
         Message message = new Message();
         message.id = msgId;
@@ -340,6 +340,10 @@ public class Collector {
 
     public void setConvName(String convName) {
         this.convName = convName;
+    }
+
+    public String getConvName() {
+        return convName;
     }
 
     public String getUserName(UUID userId) {
