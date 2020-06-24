@@ -2,7 +2,9 @@ package com.wire.bots.recording.commands;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.deser.DeserializationProblemHandler;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import com.wire.bots.recording.utils.Collector;
 import com.wire.bots.recording.utils.InstantCache;
@@ -41,7 +43,6 @@ public class BackupCommand extends Command {
 
     @Override
     public void configure(Subparser subparser) {
-
         subparser.addArgument("-in", "--input")
                 .dest("in")
                 .type(String.class)
@@ -61,7 +62,7 @@ public class BackupCommand extends Command {
                 .help("Password");
     }
 
-    public static void unzip(String source, String destination) throws ZipException {
+    private static void unzip(String source, String destination) throws ZipException {
         ZipFile zipFile = new ZipFile(source);
         zipFile.extractAll(destination);
     }
@@ -72,13 +73,34 @@ public class BackupCommand extends Command {
         final String password = namespace.getString("password");
         final String in = namespace.getString("in");
 
-        unzip(in, "recording/in");
+        final File inputDir = new File("recording/in");
+        final File outputDir = new File("recording/output");
+        final File imagesDir = new File("recording/images");
+        final File avatarsDir = new File("recording/avatars");
+
+        inputDir.mkdirs();
+        outputDir.mkdirs();
+        imagesDir.mkdirs();
+        avatarsDir.mkdirs();
+
+        unzip(in, inputDir.getAbsolutePath());
 
         final File eventsFile = new File("recording/in/events.json");
         final File conversationsFile = new File("recording/in/conversations.json");
         final File exportFile = new File("recording/in/export.json");
 
         final ObjectMapper objectMapper = bootstrap.getObjectMapper();
+        objectMapper.addHandler(new DeserializationProblemHandler() {
+            @Override
+            public Object handleWeirdStringValue(DeserializationContext c, Class<?> t, String v, String f) {
+                return null;
+            }
+
+            @Override
+            public Object handleWeirdNumberValue(DeserializationContext c, Class<?> t, Number v, String f) {
+                return null;
+            }
+        });
 
         final Environment environment = new Environment(getName(),
                 objectMapper,
@@ -115,19 +137,46 @@ public class BackupCommand extends Command {
 
         InstantCache cache = new InstantCache(email, password, client);
 
-        for (_Conversation conversation : conversations) {
-            if (conversation.name == null || conversation.name.isEmpty()) {
-                if (conversation.others != null && !conversation.others.isEmpty())
-                    conversation.name = cache.getUser(conversation.others.get(0)).name;
+        processConversations(conversations, cache);
+
+        processEvents(events, cache);
+
+        createPDFs();
+    }
+
+    private void createPDFs() {
+        for (Collector collector : collectorHashMap.values()) {
+            try {
+                final String html = collector.execute();
+                String out = String.format("recording/output/%s.pdf", collector.getConvName());
+                PdfGenerator.save(out, html, "file:./");
+                System.out.printf("Generated pdf: %s\n", out);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            conversationHashMap.put(conversation.id, conversation);
-
-            System.out.printf("%s, id: %s, type: %d\n",
-                    conversation.name,
-                    conversation.id,
-                    conversation.type);
         }
+    }
 
+    private void processConversations(_Conversation[] conversations, InstantCache cache) {
+        for (_Conversation conversation : conversations) {
+            try {
+                if (conversation.name == null || conversation.name.isEmpty()) {
+                    if (conversation.others != null && !conversation.others.isEmpty())
+                        conversation.name = cache.getUser(conversation.others.get(0)).name;
+                }
+                conversationHashMap.put(conversation.id, conversation);
+
+                System.out.printf("%s, id: %s, type: %d\n",
+                        conversation.name,
+                        conversation.id,
+                        conversation.type);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void processEvents(Event[] events, InstantCache cache) {
         System.out.println("\nEvents:");
 
         for (Event event : events) {
@@ -139,31 +188,28 @@ public class BackupCommand extends Command {
             );
 
             Collector collector = getCollector(event.conversation, cache);
-            switch (event.type) {
-                case "conversation.group-creation": {
-                    onGroupCreation(collector, event);
+            try {
+                switch (event.type) {
+                    case "conversation.group-creation": {
+                        onGroupCreation(collector, event);
+                    }
+                    break;
+                    case "conversation.message-add": {
+                        onMessageAdd(collector, event);
+                    }
+                    break;
+                    case "conversation.asset-add": {
+                        onAssetAdd(collector, event);
+                    }
+                    break;
+                    case "conversation.member-join": {
+                        onMemberJoin(collector, event);
+                    }
+                    break;
                 }
-                break;
-                case "conversation.message-add": {
-                    onMessageAdd(collector, event);
-                }
-                break;
-                case "conversation.asset-add": {
-                    onAssetAdd(collector, event);
-                }
-                break;
-                case "conversation.member-join": {
-                    onMemberJoin(collector, event);
-                }
-                break;
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        }
-
-        for (Collector collector : collectorHashMap.values()) {
-            final String html = collector.execute();
-            String out = String.format("recording/output/%s.pdf", collector.getConvName());
-            PdfGenerator.save(out, html, "file:./");
-            System.out.printf("Generated pdf: %s\n", out);
         }
     }
 
@@ -208,7 +254,7 @@ public class BackupCommand extends Command {
         if (event.data.replacingMessageId != null) {
             EditedTextMessage edit = new EditedTextMessage(event.id, event.conversation, null, event.from);
             edit.setText(event.data.content);
-            edit.setTime(event.editedTime);
+            edit.setTime(event.editedTime != null ? event.editedTime : event.time);
             edit.setReplacingMessageId(event.data.replacingMessageId);
             collector.addEdit(edit);
         } else {
