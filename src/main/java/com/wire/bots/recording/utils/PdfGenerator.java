@@ -45,6 +45,7 @@ public class PdfGenerator {
                     return bu + uri;
                 })
                 .withHtmlContent(html, baseUrl)
+                .useFastMode()
                 .toStream(out)
                 .run();
     }

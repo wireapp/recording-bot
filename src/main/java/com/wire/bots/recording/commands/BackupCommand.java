@@ -71,13 +71,14 @@ public class BackupCommand extends Command {
         final String email = namespace.getString("email");
         final String password = namespace.getString("password");
         final String in = namespace.getString("in");
-        //unzip(in, "recording/in");
+
+        unzip(in, "recording/in");
+
         final File eventsFile = new File("recording/in/events.json");
         final File conversationsFile = new File("recording/in/conversations.json");
+        final File exportFile = new File("recording/in/export.json");
 
         final ObjectMapper objectMapper = bootstrap.getObjectMapper();
-        final Event[] events = objectMapper.readValue(eventsFile, Event[].class);
-        final _Conversation[] conversations = objectMapper.readValue(conversationsFile, _Conversation[].class);
 
         final Environment environment = new Environment(getName(),
                 objectMapper,
@@ -100,6 +101,18 @@ public class BackupCommand extends Command {
                 .withProvider(JacksonJsonProvider.class)
                 .build(getName());
 
+        final Event[] events = objectMapper.readValue(eventsFile, Event[].class);
+        final _Conversation[] conversations = objectMapper.readValue(conversationsFile, _Conversation[].class);
+        final _Export export = objectMapper.readValue(exportFile, _Export.class);
+
+        System.out.printf("Processing backup:\nDevice: %s\nUser: %s\nid: %s\n\n",
+                export.client_id,
+                export.user_name,
+                export.user_id);
+        System.out.printf("Loaded: %d conversations and %d events\n\n",
+                conversations.length,
+                events.length);
+
         InstantCache cache = new InstantCache(email, password, client);
 
         for (_Conversation conversation : conversations) {
@@ -108,9 +121,23 @@ public class BackupCommand extends Command {
                     conversation.name = cache.getUser(conversation.others.get(0)).name;
             }
             conversationHashMap.put(conversation.id, conversation);
+
+            System.out.printf("%s, id: %s, type: %d\n",
+                    conversation.name,
+                    conversation.id,
+                    conversation.type);
         }
 
+        System.out.println("\nEvents:");
+
         for (Event event : events) {
+            System.out.printf("Id: %s, time: %s, conv: %s, type: %s\n",
+                    event.id,
+                    event.time,
+                    event.conversation,
+                    event.type
+            );
+
             Collector collector = getCollector(event.conversation, cache);
             switch (event.type) {
                 case "conversation.group-creation": {
@@ -135,7 +162,8 @@ public class BackupCommand extends Command {
         for (Collector collector : collectorHashMap.values()) {
             final String html = collector.execute();
             String out = String.format("recording/output/%s.pdf", collector.getConvName());
-            PdfGenerator.save(out, html, "file:/Users/dejankovacevic/Projects/recording-bot");
+            PdfGenerator.save(out, html, "file:./");
+            System.out.printf("Generated pdf: %s\n", out);
         }
     }
 
@@ -287,5 +315,24 @@ public class BackupCommand extends Command {
         String name;
         @JsonProperty
         ArrayList<UUID> others;
+        @JsonProperty
+        int type;
+    }
+
+    static class _Export {
+        @JsonProperty
+        String client_id;
+        @JsonProperty
+        String creation_time;
+        @JsonProperty
+        String platform;
+        @JsonProperty
+        String user_handle;
+        @JsonProperty
+        UUID user_id;
+        @JsonProperty
+        String user_name;
+        @JsonProperty
+        int version;
     }
 }
