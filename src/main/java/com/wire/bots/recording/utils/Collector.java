@@ -143,7 +143,7 @@ public class Collector {
 
         message.attachment = new Attachment();
         message.attachment.name = event.getName();
-        message.attachment.url = assetFilename;
+        message.attachment.url = "file://" + file.getAbsolutePath();
 
         Sender sender = sender(event.getUserId());
         sender.add(message);
@@ -245,8 +245,6 @@ public class Collector {
         sender.system = "system";
         sender.senderId = UUID.randomUUID();
         sender.avatar = systemIcon(type);
-        if (!new File(sender.avatar).exists())
-            sender.avatar = null;
         return sender;
     }
 

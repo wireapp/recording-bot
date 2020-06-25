@@ -11,10 +11,7 @@ import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import com.wire.bots.recording.utils.Collector;
 import com.wire.bots.recording.utils.InstantCache;
 import com.wire.bots.recording.utils.PdfGenerator;
-import com.wire.bots.sdk.models.EditedTextMessage;
-import com.wire.bots.sdk.models.ImageMessage;
-import com.wire.bots.sdk.models.ReactionMessage;
-import com.wire.bots.sdk.models.TextMessage;
+import com.wire.bots.sdk.models.*;
 import io.dropwizard.cli.Command;
 import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.client.JerseyClientConfiguration;
@@ -135,10 +132,14 @@ public class BackupCommand extends Command {
         final _Conversation[] conversations = objectMapper.readValue(conversationsFile, _Conversation[].class);
         final _Export export = objectMapper.readValue(exportFile, _Export.class);
 
-        System.out.printf("Processing backup:\nDevice: %s\nUser: %s\nid: %s\n\n",
+        System.out.printf("Processing backup:\nDevice: %s\nUser: %s (@%s)\nid: %s\ncreated: %s\nplatform: %s\nversion: %d\n\n",
                 export.client_id,
                 export.user_name,
-                export.user_id);
+                export.user_handle,
+                export.user_id,
+                export.creation_time,
+                export.platform,
+                export.version);
         System.out.printf("Loaded: %d conversations and %d events\n\n",
                 conversations.length,
                 events.length);
@@ -190,7 +191,7 @@ public class BackupCommand extends Command {
         for (Event event : events) {
             if (event.type == null)
                 continue;
-            
+
             System.out.printf("Id: %s, time: %s, conv: %s, type: %s\n",
                     event.id,
                     event.time,
@@ -249,15 +250,28 @@ public class BackupCommand extends Command {
     private void onAssetAdd(Collector collector, Event event) throws ParseException {
         if (event.data.otrKey == null || event.data.sha256 == null)
             return;
-        final ImageMessage img = new ImageMessage(event.id, event.conversation, null, event.from);
-        img.setTime(event.time);
-        img.setSize(event.data.contentLength);
-        img.setMimeType(event.data.contentType);
-        img.setAssetToken(event.data.token);
-        img.setAssetKey(event.data.key);
-        img.setOtrKey(toArray(event.data.otrKey));
-        img.setSha256(toArray(event.data.sha256));
-        collector.add(img);
+        if (event.data.contentType.startsWith("image")) {
+            final ImageMessage img = new ImageMessage(event.id, event.conversation, null, event.from);
+            img.setTime(event.time);
+            img.setSize(event.data.contentLength);
+            img.setMimeType(event.data.contentType);
+            img.setAssetToken(event.data.token);
+            img.setAssetKey(event.data.key);
+            img.setOtrKey(toArray(event.data.otrKey));
+            img.setSha256(toArray(event.data.sha256));
+            collector.add(img);
+        } else {
+            final AttachmentMessage att = new AttachmentMessage(event.id, event.conversation, null, event.from);
+            att.setTime(event.time);
+            att.setSize(event.data.contentLength);
+            att.setMimeType(event.data.contentType);
+            att.setAssetToken(event.data.token);
+            att.setAssetKey(event.data.key);
+            att.setOtrKey(toArray(event.data.otrKey));
+            att.setSha256(toArray(event.data.sha256));
+            att.setName(event.data.info.name);
+            collector.add(att);
+        }
     }
 
     private void onMessageAdd(Collector collector, Event event) throws ParseException {
@@ -353,14 +367,20 @@ public class BackupCommand extends Command {
         UUID replacingMessageId;
         @JsonProperty("quote")
         Quote quote;
+        @JsonProperty
+        Info info;
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    static class Info {
+        @JsonProperty
+        String name;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     static class Quote {
         @JsonProperty("message_id")
         UUID messageId;
-        @JsonProperty("user_id")
-        UUID userId;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
