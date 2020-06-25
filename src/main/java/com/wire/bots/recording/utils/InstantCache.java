@@ -16,10 +16,16 @@ import java.util.Arrays;
 import java.util.UUID;
 
 public class InstantCache extends Cache {
-    private final API api;
+    private final String email;
+    private final String password;
+    private final Client client;
+    private API api;
 
     public InstantCache(String email, String password, Client client) throws HttpException {
         super(null);
+        this.email = email;
+        this.password = password;
+        this.client = client;
         Access access = new LoginClient(client).login(email, password);
         this.api = new API(client, null, access.getToken());
     }
@@ -39,7 +45,18 @@ public class InstantCache extends Cache {
 
     @Override
     protected byte[] downloadAsset(MessageAssetBase message) throws Exception {
-        byte[] cipher = api.downloadAsset(message.getAssetKey(), message.getAssetToken());
+        byte[] cipher;
+        try {
+            cipher = api.downloadAsset(message.getAssetKey(), message.getAssetToken());
+        } catch (HttpException e) {
+            if (e.getCode() == 401) {
+                Access access = new LoginClient(client).login(email, password);
+                this.api = new API(client, null, access.getToken());
+                cipher = api.downloadAsset(message.getAssetKey(), message.getAssetToken());
+            } else {
+                throw e;
+            }
+        }
         byte[] sha256 = MessageDigest.getInstance("SHA-256").digest(cipher);
         if (!Arrays.equals(sha256, message.getSha256()))
             throw new Exception("Failed sha256 check");

@@ -245,10 +245,11 @@ public class Collector {
         sender.system = "system";
         sender.senderId = UUID.randomUUID();
         sender.avatar = systemIcon(type);
+        if (!new File(sender.avatar).exists())
+            sender.avatar = null;
         return sender;
     }
 
-    @Nullable
     private String systemIcon(String type) {
         final String base = String.format("%s/assets/", this.base);
         switch (type) {
@@ -270,7 +271,7 @@ public class Collector {
             case "conversation.otr-message-add.new-ping":
                 return base + "icons8-sun-50.png";
             default:
-                return null;
+                return "";
         }
     }
 

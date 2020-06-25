@@ -2,6 +2,8 @@ package com.wire.bots.recording.commands;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.DeserializationProblemHandler;
@@ -11,6 +13,7 @@ import com.wire.bots.recording.utils.InstantCache;
 import com.wire.bots.recording.utils.PdfGenerator;
 import com.wire.bots.sdk.models.EditedTextMessage;
 import com.wire.bots.sdk.models.ImageMessage;
+import com.wire.bots.sdk.models.ReactionMessage;
 import com.wire.bots.sdk.models.TextMessage;
 import io.dropwizard.cli.Command;
 import io.dropwizard.client.JerseyClientBuilder;
@@ -100,6 +103,11 @@ public class BackupCommand extends Command {
             public Object handleWeirdNumberValue(DeserializationContext c, Class<?> t, Number v, String f) {
                 return null;
             }
+
+            @Override
+            public Object handleUnexpectedToken(DeserializationContext c, Class<?> t, JsonToken j, JsonParser p, String f) {
+                return null;
+            }
         });
 
         final Environment environment = new Environment(getName(),
@@ -180,6 +188,9 @@ public class BackupCommand extends Command {
         System.out.println("\nEvents:");
 
         for (Event event : events) {
+            if (event.type == null)
+                continue;
+            
             System.out.printf("Id: %s, time: %s, conv: %s, type: %s\n",
                     event.id,
                     event.time,
@@ -187,23 +198,22 @@ public class BackupCommand extends Command {
                     event.type
             );
 
-            Collector collector = getCollector(event.conversation, cache);
             try {
                 switch (event.type) {
                     case "conversation.group-creation": {
-                        onGroupCreation(collector, event);
+                        onGroupCreation(getCollector(event.conversation, cache), event);
                     }
                     break;
                     case "conversation.message-add": {
-                        onMessageAdd(collector, event);
+                        onMessageAdd(getCollector(event.conversation, cache), event);
                     }
                     break;
                     case "conversation.asset-add": {
-                        onAssetAdd(collector, event);
+                        onAssetAdd(getCollector(event.conversation, cache), event);
                     }
                     break;
                     case "conversation.member-join": {
-                        onMemberJoin(collector, event);
+                        onMemberJoin(getCollector(event.conversation, cache), event);
                     }
                     break;
                 }
@@ -267,15 +277,15 @@ public class BackupCommand extends Command {
             collector.add(txt);
         }
 
-//        if (event.reactions != null) {
-//            for (UUID userId : event.reactions.keySet()) {
-//                ReactionMessage like = new ReactionMessage(UUID.randomUUID(), event.conversation, null, userId);
-//                like.setReactionMessageId(event.id);
-//                like.setEmoji(event.reactions.get(userId));
-//                like.setTime(event.time);
-//                collector.add(like);
-//            }
-//        }
+        if (event.reactions != null) {
+            for (UUID userId : event.reactions.keySet()) {
+                ReactionMessage like = new ReactionMessage(UUID.randomUUID(), event.conversation, null, userId);
+                like.setReactionMessageId(event.id);
+                like.setEmoji(event.reactions.get(userId));
+                like.setTime(event.time);
+                collector.add(like);
+            }
+        }
     }
 
     private byte[] toArray(HashMap<String, Byte> otrKey) {
@@ -313,8 +323,8 @@ public class BackupCommand extends Command {
         Data data;
         @JsonProperty("edited_time")
         String editedTime;
-        //@JsonProperty("reactions")
-        //HashMap<UUID, String> reactions;
+        @JsonProperty("reactions")
+        HashMap<UUID, String> reactions;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
