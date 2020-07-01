@@ -143,7 +143,7 @@ public class Collector {
         String assetFilename = getFilename(file);
 
         message.attachment = new Attachment();
-        message.attachment.name = event.getName();
+        message.attachment.name = String.format("%s (%s)", event.getName(), event.getAssetKey());
         message.attachment.url = "file://" + assetFilename;
 
         Sender sender = sender(event.getUserId());
