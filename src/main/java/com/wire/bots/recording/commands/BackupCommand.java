@@ -41,6 +41,7 @@ public class BackupCommand extends Command {
     private static final String VERSION = "0.1.1";
     private final HashMap<UUID, _Conversation> conversationHashMap = new HashMap<>();
     private final HashMap<UUID, Collector> collectorHashMap = new HashMap<>();
+    private _Export export;
 
     public BackupCommand() {
         super("pdf", "Convert Wire Desktop backup file into PDF");
@@ -122,7 +123,7 @@ public class BackupCommand extends Command {
 
         final Event[] events = objectMapper.readValue(eventsFile, Event[].class);
         final _Conversation[] conversations = objectMapper.readValue(conversationsFile, _Conversation[].class);
-        final _Export export = objectMapper.readValue(exportFile, _Export.class);
+        export = objectMapper.readValue(exportFile, _Export.class);
 
         System.out.printf("Processing backup:\nDevice: %s\nUser: %s (@%s)\nid: %s\ncreated: %s\nplatform: %s\nversion: %d\n\n",
                 export.client_id,
@@ -136,13 +137,10 @@ public class BackupCommand extends Command {
                 conversations.length,
                 events.length);
 
-
         final String root = export.user_handle;
-        final File outputDir = new File(root);
         final File imagesDir = new File(String.format("%s/assets", root));
         final File avatarsDir = new File(String.format("%s/avatars", root));
 
-        outputDir.mkdirs();
         imagesDir.mkdirs();
         avatarsDir.mkdirs();
 
@@ -235,6 +233,15 @@ public class BackupCommand extends Command {
             Collector collector = new Collector(cache);
             _Conversation conversation = getConversation(convId);
             collector.setConvName(conversation.name);
+            collector.details = new Collector.Details();
+            collector.details.name = export.user_name;
+            collector.details.handle = export.user_handle;
+            collector.details.id = export.user_id.toString();
+            collector.details.device = export.client_id;
+            collector.details.platform = export.platform;
+            collector.details.date = export.creation_time;
+            collector.details.version = export.version;
+
             return collector;
         });
     }

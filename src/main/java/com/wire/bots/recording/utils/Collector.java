@@ -24,6 +24,7 @@ public class Collector {
     private final HashMap<UUID, Message> messagesHashMap = new HashMap<>();
     private Message lastMessage = null;
     private String convName;
+    public Details details;
     private static String regex = "http(?:s)?://(?:www\\.)?youtu(?:\\.be/|be\\.com/(?:watch\\?v=|v/|embed/" +
             "|user/(?:[\\w#]+/)+))([^&#?\\n]+)";
     private static Pattern p = Pattern.compile(regex);
@@ -143,7 +144,7 @@ public class Collector {
 
         message.attachment = new Attachment();
         message.attachment.name = event.getName();
-        message.attachment.url = "file://" + file.getAbsolutePath();
+        message.attachment.url = "file://" + assetFilename;
 
         Sender sender = sender(event.getUserId());
         sender.add(message);
@@ -334,6 +335,7 @@ public class Collector {
         Conversation ret = new Conversation();
         ret.days = days;
         ret.title = convName;
+        ret.details = details;
         return ret;
     }
 
@@ -356,10 +358,21 @@ public class Collector {
     public static class Conversation {
         LinkedList<Day> days = new LinkedList<>();
         String title;
+        Details details;
 
         public String getTitle() {
             return title;
         }
+    }
+
+    public static class Details {
+        public String device;
+        public String date;
+        public String platform;
+        public String handle;
+        public String id;
+        public String name;
+        public int version;
     }
 
     private Mustache compileTemplate() {
