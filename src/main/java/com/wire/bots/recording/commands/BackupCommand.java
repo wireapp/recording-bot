@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.DeserializationProblemHandler;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import com.wire.bots.recording.utils.Collector;
+import com.wire.bots.recording.utils.Helper;
 import com.wire.bots.recording.utils.InstantCache;
 import com.wire.bots.recording.utils.PdfGenerator;
 import com.wire.bots.sdk.models.*;
@@ -27,7 +28,9 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 
 import javax.ws.rs.client.Client;
 import java.io.File;
+import java.net.URLEncoder;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -77,39 +80,17 @@ public class BackupCommand extends Command {
         final String password = namespace.getString("password");
         final String in = namespace.getString("in");
 
-        final File inputDir = new File("recording/in");
-        final File outputDir = new File("recording/output");
-        final File imagesDir = new File("recording/images");
-        final File avatarsDir = new File("recording/avatars");
-
+        final File inputDir = new File("tmp");
         inputDir.mkdirs();
-        outputDir.mkdirs();
-        imagesDir.mkdirs();
-        avatarsDir.mkdirs();
 
         unzip(in, inputDir.getAbsolutePath());
 
-        final File eventsFile = new File("recording/in/events.json");
-        final File conversationsFile = new File("recording/in/conversations.json");
-        final File exportFile = new File("recording/in/export.json");
+        final File eventsFile = new File("tmp/events.json");
+        final File conversationsFile = new File("tmp/conversations.json");
+        final File exportFile = new File("tmp/export.json");
 
         final ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.addHandler(new DeserializationProblemHandler() {
-            @Override
-            public Object handleWeirdStringValue(DeserializationContext c, Class<?> t, String v, String f) {
-                return null;
-            }
-
-            @Override
-            public Object handleWeirdNumberValue(DeserializationContext c, Class<?> t, Number v, String f) {
-                return null;
-            }
-
-            @Override
-            public Object handleUnexpectedToken(DeserializationContext c, Class<?> t, JsonToken j, JsonParser p, String f) {
-                return null;
-            }
-        });
+        objectMapper.addHandler(new _DeserializationProblemHandler());
 
         final Environment environment = new Environment(getName(),
                 objectMapper,
@@ -126,6 +107,7 @@ public class BackupCommand extends Command {
         jerseyCfg.setConnectionRequestTimeout(Duration.seconds(20));
         jerseyCfg.setRetries(3);
         jerseyCfg.setKeepAlive(Duration.milliseconds(0));
+
         final TlsConfiguration tlsConfiguration = new TlsConfiguration();
         tlsConfiguration.setProtocol("TLSv1.2");
         tlsConfiguration.setProvider("SunJSSE");
@@ -154,20 +136,34 @@ public class BackupCommand extends Command {
                 conversations.length,
                 events.length);
 
+
+        final String root = export.user_handle;
+        final File outputDir = new File(root);
+        final File imagesDir = new File(String.format("%s/assets", root));
+        final File avatarsDir = new File(String.format("%s/avatars", root));
+
+        outputDir.mkdirs();
+        imagesDir.mkdirs();
+        avatarsDir.mkdirs();
+
+        Helper.root = root;
+        Collector.root = root;
+
         InstantCache cache = new InstantCache(email, password, client);
 
         processConversations(conversations, cache);
 
         processEvents(events, cache);
 
-        createPDFs();
+        createPDFs(root);
     }
 
-    private void createPDFs() {
+    private void createPDFs(String root) {
         for (Collector collector : collectorHashMap.values()) {
             try {
                 final String html = collector.execute();
-                String out = String.format("recording/output/%s.pdf", collector.getConvName());
+                final String filename = URLEncoder.encode(collector.getConvName(), StandardCharsets.UTF_8.toString());
+                String out = String.format("%s/%s.pdf", root, filename);
                 PdfGenerator.save(out, html, "file:./");
                 System.out.printf("Generated pdf: %s\n", out);
             } catch (Exception e) {
@@ -420,5 +416,22 @@ public class BackupCommand extends Command {
         String user_name;
         @JsonProperty
         int version;
+    }
+
+    static class _DeserializationProblemHandler extends DeserializationProblemHandler {
+        @Override
+        public Object handleWeirdStringValue(DeserializationContext c, Class<?> t, String v, String f) {
+            return null;
+        }
+
+        @Override
+        public Object handleWeirdNumberValue(DeserializationContext c, Class<?> t, Number v, String f) {
+            return null;
+        }
+
+        @Override
+        public Object handleUnexpectedToken(DeserializationContext c, Class<?> t, JsonToken j, JsonParser p, String f) {
+            return null;
+        }
     }
 }
