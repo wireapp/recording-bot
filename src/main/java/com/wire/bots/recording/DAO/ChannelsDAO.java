@@ -9,20 +9,20 @@ import java.util.List;
 import java.util.UUID;
 
 public interface ChannelsDAO {
-    @SqlUpdate("INSERT INTO Recording_Channels (conversationId, botId) " +
+    @SqlUpdate("INSERT INTO Channels (conversationId, botId) " +
             "VALUES (:conversationId, :botId) ON CONFLICT (conversationId) DO NOTHING")
     int insert(@Bind("conversationId") UUID conversationId,
                @Bind("botId") UUID botId);
 
-    @SqlQuery("SELECT conversationId AS UUID FROM Recording_Channels WHERE conversationId = :conversationId")
+    @SqlQuery("SELECT conversationId AS UUID FROM Channels WHERE conversationId = :conversationId")
     @RegisterMapper(UUIDResultSetMapper.class)
     UUID contains(@Bind("conversationId") UUID conversationId);
 
-    @SqlQuery("SELECT botId AS UUID FROM Recording_Channels WHERE conversationId = :conversationId")
+    @SqlQuery("SELECT botId AS UUID FROM Channels WHERE conversationId = :conversationId")
     @RegisterMapper(UUIDResultSetMapper.class)
     UUID getBotId(@Bind("conversationId") UUID conversationId);
 
-    @SqlQuery("SELECT conversationId AS UUID FROM Recording_Channels")
+    @SqlQuery("SELECT conversationId AS UUID FROM Channels")
     @RegisterMapper(UUIDResultSetMapper.class)
     List<UUID> listConversations();
 
