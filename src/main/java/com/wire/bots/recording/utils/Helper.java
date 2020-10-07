@@ -49,7 +49,7 @@ public class Helper {
         String extension = getExtension(mimeType);
         if (extension.isEmpty())
             extension = "error";
-        String filename = String.format("%s/assets/%s.%s", root, assetKey, extension);
+        String filename = String.format("assets/%s.%s", assetKey, extension);
         return new File(filename);
     }
 
@@ -59,7 +59,7 @@ public class Helper {
     }
 
     static String avatarFile(String key) {
-        return String.format("%s/avatars/%s.png", root, key);
+        return String.format("avatars/%s.png", key);
     }
 
     @Nullable

@@ -44,10 +44,10 @@ public class Service extends Server<Config> {
     public void initialize(Bootstrap<Config> bootstrap) {
         super.initialize(bootstrap);
 
-        bootstrap.addBundle(new AssetsBundle("/recording/assets"));
-        bootstrap.addBundle(new AssetsBundle("/recording/scripts", "/recording/scripts", "index.htm", "scripts"));
-        bootstrap.addBundle(new ImagesBundle("/opt/recording/avatars", "/recording/avatars", "avatars"));
-        bootstrap.addBundle(new ImagesBundle("/opt/recording/html", "/recording/channel", "channels"));
+        bootstrap.addBundle(new AssetsBundle("/assets"));
+        bootstrap.addBundle(new AssetsBundle("/scripts", "/scripts", "index.htm", "scripts"));
+        bootstrap.addBundle(new ImagesBundle("/opt/recording/avatars", "/avatars", "avatars"));
+        bootstrap.addBundle(new ImagesBundle("/opt/recording/html", "/channel", "channels"));
 
         Application<Config> application = bootstrap.getApplication();
         instance = (Service) application;

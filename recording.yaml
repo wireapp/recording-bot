@@ -1,5 +1,4 @@
 server:
-  rootPath: /recording/*
   requestLog:
     appenders:
       - type: ${APPENDER_TYPE:-console}
@@ -13,7 +12,6 @@ logging:
 
 swagger:
   resourcePackage: com.wire.bots.sdk.server.resources
-  uriPrefix: /recording
   schemes:
     - http
     - https
