@@ -19,19 +19,14 @@ package com.wire.bots.recording;
 
 import com.wire.bots.recording.DAO.ChannelsDAO;
 import com.wire.bots.recording.DAO.EventsDAO;
-import com.wire.bots.recording.commands.BackupAndroidCommand;
-import com.wire.bots.recording.commands.BackupCommand;
-import com.wire.bots.recording.commands.BackupIosCommand;
 import com.wire.bots.recording.model.Config;
 import com.wire.bots.recording.utils.ImagesBundle;
 import com.wire.bots.sdk.MessageHandlerBase;
 import com.wire.bots.sdk.Server;
 import io.dropwizard.Application;
 import io.dropwizard.assets.AssetsBundle;
-import io.dropwizard.jdbi.DBIFactory;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
-import org.skife.jdbi.v2.DBI;
 
 import java.util.concurrent.ExecutorService;
 
@@ -54,17 +49,12 @@ public class Service extends Server<Config> {
         bootstrap.addBundle(new ImagesBundle("/opt/recording/avatars", "/recording/avatars", "avatars"));
         bootstrap.addBundle(new ImagesBundle("/opt/recording/html", "/recording/channel", "channels"));
 
-        bootstrap.addCommand(new BackupCommand());
-        bootstrap.addCommand(new BackupAndroidCommand());
-        bootstrap.addCommand(new BackupIosCommand());
-
         Application<Config> application = bootstrap.getApplication();
         instance = (Service) application;
     }
 
     @Override
     protected MessageHandlerBase createHandler(Config config, Environment env) {
-        final DBI jdbi = new DBIFactory().build(environment, config.database, "postgresql");
         final EventsDAO eventsDAO = jdbi.onDemand(EventsDAO.class);
         final ChannelsDAO channelsDAO = jdbi.onDemand(ChannelsDAO.class);
 

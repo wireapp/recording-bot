@@ -13,9 +13,7 @@ COPY . ./
 RUN mvn -Dmaven.test.skip=true package
 
 FROM dejankovacevic/bots.runtime:2.10.3
-# copy database decryption lib
-COPY --from=build /app/libs/libsodiumjni.so /opt/wire/lib/libsodiumjni.so
-# copy built jars
+
 COPY --from=build /app/target/recording.jar /opt/recording/recording.jar
 COPY --from=build /app/recording.yaml /etc/recording/recording.yaml
 

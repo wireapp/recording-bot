@@ -1,7 +1,10 @@
 server:
   rootPath: /recording/*
   requestLog:
-    appenders: []
+    appenders:
+      - type: ${APPENDER_TYPE:-console}
+        filterFactories:
+          - type: status-filter-factory
 
 logging:
   level: INFO
@@ -15,21 +18,15 @@ swagger:
     - http
     - https
 
-auth: ${WIRE_SERVICE_TOKEN:-}
+auth: ${SERVICE_TOKEN:-}
 email: ${WIRE_EMAIL:-}
 password: ${WIRE_PASSWORD:-}
 
-db:
-  host: localhost
-  port: 6379 #redis
-  user: admin
-  password: ${REDIS_PASSWORD:-}
-
 database:
   driverClass: org.postgresql.Driver
-  password: ${POSTGRES_PASSWORD:-}
-  user: ${POSTGRES_USER:-postgres}
-  url: jdbc:postgresql://localhost/postgres
+  password: ${DB_PASSWORD:-}
+  user: ${DB_USER:-}
+  url: ${DB_URL:-jdbc:postgresql://localhost/recording}
   properties:
     charSet: UTF-8
   maxWaitForConnection: 1s
