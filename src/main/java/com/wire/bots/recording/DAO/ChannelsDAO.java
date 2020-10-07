@@ -26,6 +26,6 @@ public interface ChannelsDAO {
     @RegisterMapper(UUIDResultSetMapper.class)
     List<UUID> listConversations();
 
-    @SqlUpdate("DELETE FROM Recording_Channels WHERE conversationId = :conversationId")
+    @SqlUpdate("DELETE FROM Channels WHERE conversationId = :conversationId")
     int delete(@Bind("conversationId") UUID conversationId);
 }
