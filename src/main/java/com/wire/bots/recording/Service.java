@@ -43,11 +43,12 @@ public class Service extends Server<Config> {
     @Override
     public void initialize(Bootstrap<Config> bootstrap) {
         super.initialize(bootstrap);
+        String workingDir = System.getProperty("user.dir");
 
-        bootstrap.addBundle(new AssetsBundle("/assets"));
         bootstrap.addBundle(new AssetsBundle("/scripts", "/scripts", "index.htm", "scripts"));
-        bootstrap.addBundle(new ImagesBundle("/opt/recording/avatars", "/avatars", "avatars"));
-        bootstrap.addBundle(new ImagesBundle("/opt/recording/html", "/channel", "channels"));
+        bootstrap.addBundle(new ImagesBundle(workingDir + "/avatars", "/avatars", "avatars"));
+        bootstrap.addBundle(new ImagesBundle(workingDir + "/html", "/channel", "channels"));
+        bootstrap.addBundle(new ImagesBundle(workingDir + "/assets", "/assets", "assets"));
 
         Application<Config> application = bootstrap.getApplication();
         instance = (Service) application;

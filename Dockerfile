@@ -21,7 +21,7 @@ RUN mkdir /opt/recording/assets
 RUN mkdir /opt/recording/avatars
 RUN mkdir /opt/recording/html
 
-COPY --from=build /app/src/main/resources/recording/assets/* /opt/recording/assets/
+COPY --from=build /app/src/main/resources/assets/* /opt/recording/assets/
 
 WORKDIR /opt/recording
 

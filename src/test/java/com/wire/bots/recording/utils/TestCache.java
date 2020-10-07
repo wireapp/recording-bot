@@ -43,13 +43,13 @@ public class TestCache extends Cache {
 
     @Override
     File getProfileImage(String key) {
-        return new File(String.format("src/test/resources/recording/avatars/%s.png", key));
+        return new File(String.format("src/test/resources/avatars/%s.png", key));
     }
 
     @Override
     File getAssetFile(MessageAssetBase message) {
         String extension = Helper.getExtension(message.getMimeType());
-        return new File(String.format("src/test/resources/recording/images/%s.%s",
+        return new File(String.format("src/test/resources/images/%s.%s",
                 message.getAssetKey(),
                 extension));
     }

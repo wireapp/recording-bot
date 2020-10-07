@@ -18,7 +18,6 @@ import java.util.List;
 
 public class Helper {
     private static final List<Extension> extensions = Collections.singletonList(AutolinkExtension.create());
-    public static String root = "recording";
 
     private static final Parser parser = Parser
             .builder()

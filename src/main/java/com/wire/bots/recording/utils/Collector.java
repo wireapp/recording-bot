@@ -27,7 +27,6 @@ public class Collector {
     private static final String regex = "http(?:s)?://(?:www\\.)?youtu(?:\\.be/|be\\.com/(?:watch\\?v=|v/|embed/" +
             "|user/(?:[\\w#]+/)+))([^&#?\\n]+)";
     private static final Pattern p = Pattern.compile(regex);
-    public static String root = "recording";
     private UUID conversationId;
     public Details details;
 
@@ -250,25 +249,24 @@ public class Collector {
     }
 
     private String systemIcon(String type) {
-        final String base = String.format("/%s/assets/", Collector.root);
         switch (type) {
             case "conversation.create":
-                return base + "icons8-record-48.png";
+                return "/assets/icons8-record-48.png";
             case "conversation.member-join":
-                return base + "icons8-plus-24.png";
+                return "/assets/icons8-plus-24.png";
             case "conversation.member-leave":
-                return base + "icons8-minus-24.png";
+                return "/assets/icons8-minus-24.png";
             case "conversation.rename":
             case "conversation.otr-message-add.edit-text":
-                return base + "icons8-edit-30.png";
+                return "/assets/icons8-edit-30.png";
             case "conversation.otr-message-add.call":
-                return base + "icons8-end-call-30.png";
+                return "/assets/icons8-end-call-30.png";
             case "conversation.otr-message-add.delete-text":
-                return base + "icons8-delete.png";
+                return "/assets/icons8-delete.png";
             case "conversation.member-leave.bot-removed":
-                return base + "icons8-stop-squared-48.png";
+                return "/assets/icons8-stop-squared-48.png";
             case "conversation.otr-message-add.new-ping":
-                return base + "icons8-sun-50.png";
+                return "/assets/icons8-sun-50.png";
             default:
                 return "";
         }
@@ -303,7 +301,8 @@ public class Collector {
     }
 
     private String getFilename(File file) {
-        return String.format("/%s/%s/%s", root, "assets", file.getName());
+
+        return String.format("/%s/%s", "assets", file.getName());
     }
 
     @Nullable
@@ -312,7 +311,7 @@ public class Collector {
         String profileAssetKey = getProfileAssetKey(user);
         if (profileAssetKey != null) {
             File file = cache.getProfileImage(profileAssetKey);
-            return String.format("/%s/%s/%s", root, "avatars", file.getName());
+            return String.format("/%s/%s", "avatars", file.getName());
         }
         return null;
     }
