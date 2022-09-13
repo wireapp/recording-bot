@@ -3,9 +3,8 @@ package com.wire.bots.recording.utils;
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
-import com.wire.bots.sdk.models.*;
-import com.wire.bots.sdk.server.model.Asset;
-import com.wire.bots.sdk.server.model.User;
+import com.wire.xenon.backend.models.User;
+import com.wire.xenon.models.*;
 
 import javax.annotation.Nullable;
 import java.io.*;

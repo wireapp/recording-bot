@@ -16,7 +16,7 @@ swagger:
     - http
     - https
 
-auth: ${SERVICE_TOKEN:-}
+token: ${SERVICE_TOKEN:-}
 email: ${WIRE_EMAIL:-}
 password: ${WIRE_PASSWORD:-}
 

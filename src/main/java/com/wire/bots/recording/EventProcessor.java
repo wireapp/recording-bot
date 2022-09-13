@@ -4,12 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wire.bots.recording.model.Event;
 import com.wire.bots.recording.utils.Cache;
 import com.wire.bots.recording.utils.Collector;
-import com.wire.bots.sdk.WireClient;
-import com.wire.bots.sdk.models.*;
-import com.wire.bots.sdk.server.model.Member;
-import com.wire.bots.sdk.server.model.SystemMessage;
-import com.wire.bots.sdk.server.model.User;
-import com.wire.bots.sdk.tools.Logger;
+import com.wire.xenon.WireClient;
+import com.wire.xenon.backend.models.Member;
+import com.wire.xenon.backend.models.SystemMessage;
+import com.wire.xenon.backend.models.User;
+import com.wire.xenon.models.*;
+import com.wire.xenon.tools.Logger;
 
 import java.io.File;
 import java.io.IOException;

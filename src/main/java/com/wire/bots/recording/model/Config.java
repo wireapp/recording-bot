@@ -19,7 +19,7 @@
 package com.wire.bots.recording.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.wire.bots.sdk.Configuration;
+import com.wire.lithium.Configuration;
 
 import javax.validation.constraints.NotNull;
 

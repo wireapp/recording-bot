@@ -8,14 +8,12 @@ WORKDIR /app
 COPY pom.xml ./
 RUN mvn verify --fail-never -U
 
-# build stuff
+# build
 COPY . ./
 RUN mvn -Dmaven.test.skip=true package
 
-FROM dejankovacevic/bots.runtime:2.10.3
-
-COPY --from=build /app/target/recording.jar /opt/recording/recording.jar
-COPY --from=build /app/recording.yaml /etc/recording/recording.yaml
+# runtime stage
+FROM wirebot/runtime:1.2.0
 
 RUN mkdir /opt/recording/assets
 RUN mkdir /opt/recording/avatars
@@ -25,6 +23,18 @@ COPY --from=build /app/src/main/resources/assets/* /opt/recording/assets/
 
 WORKDIR /opt/recording
 
-EXPOSE  8080 8081 8082
+EXPOSE  8080 8081
 
-CMD ["sh", "-c","/usr/bin/java -Djava.library.path=/opt/wire/lib -jar recording.jar server /etc/recording/recording.yaml"]
+# Copy configuration
+COPY recording.yaml /opt/recording/
+
+# Copy built target
+COPY --from=build /app/target/recording.jar /opt/recording/
+
+# create version file
+ARG release_version=development
+ENV RELEASE_FILE_PATH=/opt/recording/release.txt
+RUN echo $release_version > $RELEASE_FILE_PATH
+
+EXPOSE  8080 8081
+ENTRYPOINT ["java", "-jar", "recording.jar", "server", "/opt/recording/recording.yaml"]

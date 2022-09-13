@@ -3,9 +3,9 @@ package com.wire.bots.recording;
 import com.wire.bots.recording.utils.Collector;
 import com.wire.bots.recording.utils.PdfGenerator;
 import com.wire.bots.recording.utils.TestCache;
-import com.wire.bots.sdk.models.*;
-import com.wire.bots.sdk.tools.Logger;
-import com.wire.bots.sdk.tools.Util;
+import com.wire.xenon.models.*;
+import com.wire.xenon.tools.Logger;
+import com.wire.xenon.tools.Util;
 import org.junit.Test;
 
 import java.io.File;
@@ -18,70 +18,68 @@ public class ConversationTemplateTest {
     private static final String SRC_TEST_OUT = "src/test/resources";
 
     private static TextMessage txt(UUID userId, String time, String text) {
-        TextMessage ret = new TextMessage(UUID.randomUUID(), UUID.randomUUID(), "", userId);
+        TextMessage ret = new TextMessage(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), "", userId, time);
         ret.setText(text);
-        ret.setTime(time);
         return ret;
     }
 
     private static ReactionMessage like(UUID userId, String emoji, String time, UUID msgId) {
-        ReactionMessage ret = new ReactionMessage(UUID.randomUUID(), UUID.randomUUID(), "", userId);
+        ReactionMessage ret = new ReactionMessage(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), "", userId, time);
         ret.setReactionMessageId(msgId);
         ret.setEmoji(emoji);
-        ret.setTime(time);
         return ret;
     }
 
     private static TextMessage quote(UUID userId, String text, String time, UUID msgId) {
-        TextMessage ret = new TextMessage(UUID.randomUUID(), UUID.randomUUID(), "", userId);
+        TextMessage ret = new TextMessage(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), "", userId, time);
         ret.setQuotedMessageId(msgId);
         ret.setText(text);
-        ret.setTime(time);
         return ret;
     }
 
     private static EditedTextMessage edit(UUID userId, String text, String time) {
-        EditedTextMessage ret = new EditedTextMessage(UUID.randomUUID(), UUID.randomUUID(), "", userId);
+        EditedTextMessage ret = new EditedTextMessage(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), "", userId, time);
         ret.setText(text);
-        ret.setTime(time);
         return ret;
     }
 
     private static ImageMessage img(UUID userId, String time, String key, String mimeType) {
-        ImageMessage ret = new ImageMessage(UUID.randomUUID(), UUID.randomUUID(), "", userId);
+        ImageMessage ret = new ImageMessage(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), "", userId, time);
         ret.setAssetKey(key);
         ret.setMimeType(mimeType);
-        ret.setTime(time);
         return ret;
     }
 
     private static VideoMessage vid(UUID userId, String time, String key, String mimeType) {
-        VideoMessage ret = new VideoMessage(UUID.randomUUID(), UUID.randomUUID(), "", userId);
+        VideoMessage ret = new VideoMessage(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), "", userId, time);
         ret.setAssetKey(key);
         ret.setMimeType(mimeType);
-        ret.setTime(time);
         ret.setHeight(568);
         ret.setWidth(320);
         return ret;
     }
 
     private static AttachmentMessage attachment(UUID userId, String time, String key, String name, String mimeType) {
-        AttachmentMessage ret = new AttachmentMessage(UUID.randomUUID(), UUID.randomUUID(), "", userId);
+        AttachmentMessage ret = new AttachmentMessage(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), "", userId, time);
         ret.setAssetKey(key);
         ret.setMimeType(mimeType);
-        ret.setTime(time);
         ret.setName(name);
         return ret;
     }
 
     private static LinkPreviewMessage link(UUID userId, String time, String text, String title, String url, String preview) {
-        LinkPreviewMessage ret = new LinkPreviewMessage(UUID.randomUUID(), UUID.randomUUID(), "", userId);
-        ret.setTime(time);
-        ret.setTitle(title);
-        ret.setText(text);
-        ret.setUrl(url);
-        ret.setAssetKey(preview);
-        ret.setMimeType("image/png");
+        LinkPreviewMessage ret = new LinkPreviewMessage(
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                "",
+                userId,
+                time,
+                title,
+                text,
+                url,
+                preview,
+                "image/png")
         return ret;
     }
 

@@ -1,9 +1,9 @@
 package com.wire.bots.recording.utils;
 
 import com.wire.bots.recording.ConversationTemplateTest;
-import com.wire.bots.sdk.models.MessageAssetBase;
-import com.wire.bots.sdk.server.model.Asset;
-import com.wire.bots.sdk.server.model.User;
+import com.wire.xenon.backend.models.Asset;
+import com.wire.xenon.backend.models.User;
+import com.wire.xenon.models.MessageAssetBase;
 
 import java.io.File;
 import java.util.ArrayList;

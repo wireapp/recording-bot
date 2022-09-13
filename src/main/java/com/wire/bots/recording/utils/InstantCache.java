@@ -1,14 +1,11 @@
 package com.wire.bots.recording.utils;
 
-
-import com.wire.bots.sdk.exceptions.HttpException;
-import com.wire.bots.sdk.models.MessageAssetBase;
-import com.wire.bots.sdk.server.model.User;
-import com.wire.bots.sdk.tools.Logger;
-import com.wire.bots.sdk.tools.Util;
-import com.wire.bots.sdk.user.API;
-import com.wire.bots.sdk.user.LoginClient;
-import com.wire.bots.sdk.user.model.Access;
+import com.wire.lithium.API;
+import com.wire.xenon.backend.models.User;
+import com.wire.xenon.exceptions.HttpException;
+import com.wire.xenon.models.MessageAssetBase;
+import com.wire.xenon.tools.Logger;
+import com.wire.xenon.tools.Util;
 
 import javax.ws.rs.client.Client;
 import java.security.MessageDigest;

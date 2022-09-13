@@ -1,9 +1,9 @@
 package com.wire.bots.recording.DAO;
 
-import org.skife.jdbi.v2.sqlobject.Bind;
-import org.skife.jdbi.v2.sqlobject.SqlQuery;
-import org.skife.jdbi.v2.sqlobject.SqlUpdate;
-import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
+import org.jdbi.v3.sqlobject.config.RegisterColumnMapper;
+import org.jdbi.v3.sqlobject.customizer.Bind;
+import org.jdbi.v3.sqlobject.statement.SqlQuery;
+import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 
 import java.util.List;
 import java.util.UUID;
@@ -15,15 +15,15 @@ public interface ChannelsDAO {
                @Bind("botId") UUID botId);
 
     @SqlQuery("SELECT conversationId AS UUID FROM Channels WHERE conversationId = :conversationId")
-    @RegisterMapper(UUIDResultSetMapper.class)
+    @RegisterColumnMapper(UUIDResultSetMapper.class)
     UUID contains(@Bind("conversationId") UUID conversationId);
 
     @SqlQuery("SELECT botId AS UUID FROM Channels WHERE conversationId = :conversationId")
-    @RegisterMapper(UUIDResultSetMapper.class)
+    @RegisterColumnMapper(UUIDResultSetMapper.class)
     UUID getBotId(@Bind("conversationId") UUID conversationId);
 
     @SqlQuery("SELECT conversationId AS UUID FROM Channels")
-    @RegisterMapper(UUIDResultSetMapper.class)
+    @RegisterColumnMapper(UUIDResultSetMapper.class)
     List<UUID> listConversations();
 
     @SqlUpdate("DELETE FROM Channels WHERE conversationId = :conversationId")

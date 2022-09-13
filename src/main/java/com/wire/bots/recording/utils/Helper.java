@@ -1,7 +1,7 @@
 package com.wire.bots.recording.utils;
 
-import com.wire.bots.sdk.models.MessageAssetBase;
-import com.wire.bots.sdk.tools.Logger;
+import com.wire.xenon.models.MessageAssetBase;
+import com.wire.xenon.tools.Logger;
 import org.commonmark.Extension;
 import org.commonmark.ext.autolink.AutolinkExtension;
 import org.commonmark.node.Node;
