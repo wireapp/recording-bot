@@ -6,6 +6,7 @@ import com.wire.xenon.WireClient;
 import com.wire.xenon.backend.models.User;
 import com.wire.xenon.exceptions.HttpException;
 import com.wire.xenon.models.MessageAssetBase;
+import com.wire.xenon.models.RemoteMessage;
 import com.wire.xenon.tools.Logger;
 
 import java.io.File;
@@ -27,14 +28,13 @@ public class Cache {
         profiles.remove(userId);
     }
 
-    File getAssetFile(MessageAssetBase message) {
-        return assetsMap.computeIfAbsent(message.getAssetKey(), k -> {
+    File getAssetFile(RemoteMessage message) {
+        return assetsMap.computeIfAbsent(message.getAssetId(), k -> {
             try {
                 byte[] image = downloadAsset(message);
                 return Helper.saveAsset(image, message);
             } catch (Exception e) {
-                Logger.error("Cache.getAssetFile: %s", e);
-                return Helper.assetFile(message.getAssetKey(), message.getMimeType());
+                throw new RuntimeException(e);
             }
         });
     }
@@ -51,8 +51,8 @@ public class Cache {
         });
     }
 
-    protected byte[] downloadAsset(MessageAssetBase message) throws Exception {
-        return client.downloadAsset(message.getAssetKey(),
+    protected byte[] downloadAsset(RemoteMessage message) throws Exception {
+        return client.downloadAsset(message.getAssetId(),
                 message.getAssetToken(),
                 message.getSha256(),
                 message.getOtrKey());

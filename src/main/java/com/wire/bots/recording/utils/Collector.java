@@ -72,7 +72,7 @@ public class Collector {
         return df.format(date);
     }
 
-    public Sender add(TextMessage event) throws ParseException {
+    public void add(TextMessage event) throws ParseException {
         Message message = new Message();
         message.id = event.getMessageId();
 
@@ -84,7 +84,7 @@ public class Collector {
         Sender sender = sender(event.getUserId());
         sender.add(message);
 
-        return append(sender, message, event.getTime());
+        append(sender, message, event.getTime());
     }
 
     private String extractYouTube(String text) {
@@ -95,12 +95,12 @@ public class Collector {
         return null;
     }
 
-    public Sender addEdit(EditedTextMessage event) throws ParseException {
+    public void addEdit(EditedTextMessage event) throws ParseException {
         addSystem("✏ Edited", event.getTime(), "", event.getMessageId());
-        return add(event);
+        add(event);
     }
 
-    public Sender add(ImageMessage event) throws ParseException {
+    public void add(RemoteMessage event, PhotoPreviewMessage preview) throws ParseException {
         Message message = new Message();
         message.id = event.getMessageId();
         message.timeStamp = event.getTime();
@@ -111,10 +111,10 @@ public class Collector {
         Sender sender = sender(event.getUserId());
         sender.add(message);
 
-        return append(sender, message, event.getTime());
+        append(sender, message, event.getTime());
     }
 
-    public void add(VideoMessage event) throws ParseException {
+    public void add(RemoteMessage event, VideoPreviewMessage preview) throws ParseException {
         Message message = new Message();
         message.id = event.getMessageId();
         message.timeStamp = event.getTime();
@@ -122,9 +122,9 @@ public class Collector {
         File file = cache.getAssetFile(event);
         message.video = new Video();
         message.video.url = getFilename(file);
-        message.video.width = event.getWidth();
-        message.video.height = event.getHeight();
-        message.video.mimeType = event.getMimeType();
+        message.video.width = preview.getWidth();
+        message.video.height = preview.getHeight();
+        message.video.mimeType = preview.getMimeType();
 
         Sender sender = sender(event.getUserId());
         sender.add(message);
@@ -132,7 +132,7 @@ public class Collector {
         append(sender, message, event.getTime());
     }
 
-    public Sender add(AttachmentMessage event) throws ParseException {
+    public Sender add(RemoteMessage event, FilePreviewMessage preview) throws ParseException {
         Message message = new Message();
         message.id = event.getMessageId();
         message.timeStamp = event.getTime();
@@ -141,7 +141,7 @@ public class Collector {
         String assetFilename = getFilename(file);
 
         message.attachment = new Attachment();
-        message.attachment.name = String.format("%s (%s)", event.getName(), event.getAssetKey());
+        message.attachment.name = String.format("%s (%s)", preview.getName(), event.getAssetId());
         message.attachment.url = "file://" + assetFilename;
 
         Sender sender = sender(event.getUserId());
@@ -202,9 +202,10 @@ public class Collector {
      * @return true if the message was added
      * @throws ParseException
      */
-    public boolean addSystem(String text, String dateTime, String type, UUID msgId) throws ParseException {
-        if (lastMessage != null && lastMessage.timeStamp.equals(dateTime))
-            return false;
+    public void addSystem(String text, String dateTime, String type, UUID msgId) throws ParseException {
+        if (lastMessage != null && lastMessage.timeStamp.equals(dateTime)) {
+            return;
+        }
 
         Message message = new Message();
         message.id = msgId;
@@ -215,7 +216,6 @@ public class Collector {
         sender.add(message);
 
         append(sender, message, dateTime);
-        return true;
     }
 
     private String getText(TextMessage event) {

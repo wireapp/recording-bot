@@ -219,12 +219,27 @@ public class MessageHandler extends MessageHandlerBase {
     }
 
     @Override
+    public void onFilePreview(WireClient client, FilePreviewMessage msg) {
+        UUID convId = client.getConversationId();
+        UUID messageId = UUID.randomUUID();
+        UUID botId = client.getId();
+        UUID userId = msg.getUserId();
+        String type = "conversation.otr-message-add.file-preview";
+
+        try {
+            persist(convId, userId, botId, messageId, type, msg);
+        } catch (Exception e) {
+            Logger.exception(e, "onFilePreview: %s %s", botId, messageId);
+        }
+    }
+
+    @Override
     public void onVideoPreview(WireClient client, VideoPreviewMessage msg) {
         UUID convId = client.getConversationId();
         UUID messageId = UUID.randomUUID();
         UUID botId = client.getId();
         UUID userId = msg.getUserId();
-        String type = "conversation.otr-message-add.new-preview";
+        String type = "conversation.otr-message-add.video-preview";
 
         try {
             persist(convId, userId, botId, messageId, type, msg);
@@ -233,12 +248,28 @@ public class MessageHandler extends MessageHandlerBase {
         }
     }
 
+    @Override
+    public void onPhotoPreview(WireClient client, PhotoPreviewMessage msg) {
+        UUID convId = client.getConversationId();
+        UUID messageId = UUID.randomUUID();
+        UUID botId = client.getId();
+        UUID userId = msg.getUserId();
+        String type = "conversation.otr-message-add.image-preview";
+
+        try {
+            persist(convId, userId, botId, messageId, type, msg);
+        } catch (Exception e) {
+            Logger.exception(e, "onPhotoPreview: %s %s", botId, messageId);
+        }
+    }
+
+    @Override
     public void onLinkPreview(WireClient client, LinkPreviewMessage msg) {
         UUID convId = client.getConversationId();
         UUID messageId = msg.getMessageId();
         UUID botId = client.getId();
         UUID userId = msg.getUserId();
-        String type = "conversation.otr-message-add.new-link";
+        String type = "conversation.otr-message-add.link-preview";
 
         try {
             persist(convId, userId, botId, messageId, type, msg);

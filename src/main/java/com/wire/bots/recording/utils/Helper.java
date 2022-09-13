@@ -1,6 +1,6 @@
 package com.wire.bots.recording.utils;
 
-import com.wire.xenon.models.MessageAssetBase;
+import com.wire.xenon.models.RemoteMessage;
 import com.wire.xenon.tools.Logger;
 import org.commonmark.Extension;
 import org.commonmark.ext.autolink.AutolinkExtension;
@@ -32,8 +32,8 @@ public class Helper {
         return save(profile, file);
     }
 
-    static File saveAsset(byte[] image, MessageAssetBase message) throws Exception {
-        File file = assetFile(message.getAssetKey(), message.getMimeType());
+    static File saveAsset(byte[] image, RemoteMessage message) throws Exception {
+        File file = assetFile(message.getAssetId(), message.getMimeType());
         return save(image, file);
     }
 

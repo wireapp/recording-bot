@@ -67,22 +67,6 @@ public class ConversationTemplateTest {
         return ret;
     }
 
-    private static LinkPreviewMessage link(UUID userId, String time, String text, String title, String url, String preview) {
-        LinkPreviewMessage ret = new LinkPreviewMessage(
-                UUID.randomUUID(),
-                UUID.randomUUID(),
-                UUID.randomUUID(),
-                "",
-                userId,
-                time,
-                title,
-                text,
-                url,
-                preview,
-                "image/png")
-        return ret;
-    }
-
     //@Before
     public void clean() {
         String pdf = getFilename(CONV_NAME, "pdf");
@@ -157,12 +141,6 @@ public class ConversationTemplateTest {
                 " laborum."));
         collector.add(txt(dejan, saturday, "This is some url [google](https://google.com)"));
         collector.add(txt(dejan, saturday, "https://wire.com"));
-        collector.addLink(link(dejan,
-                saturday,
-                "Yo, check this link preview: https://wire.com. Totally without bugs!",
-                "The most secure collaboration platform · Wire",
-                "wire.com",
-                "logo"));
         collector.add(txt(dejan, saturday, "This is some url https://google.com and some text"));
         collector.add(txt(dejan, saturday, "These two urls https://google.com https://wire.com"));
         collector.addSystem("**Dejo** removed **Lipis**", saturday2, "conversation.member-leave", UUID.randomUUID());

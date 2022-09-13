@@ -3,7 +3,7 @@ package com.wire.bots.recording.utils;
 import com.wire.lithium.API;
 import com.wire.xenon.backend.models.User;
 import com.wire.xenon.exceptions.HttpException;
-import com.wire.xenon.models.MessageAssetBase;
+import com.wire.xenon.models.RemoteMessage;
 import com.wire.xenon.tools.Logger;
 import com.wire.xenon.tools.Util;
 
@@ -51,15 +51,15 @@ public class InstantCache extends Cache {
     }
 
     @Override
-    protected byte[] downloadAsset(MessageAssetBase message) throws Exception {
+    protected byte[] downloadAsset(RemoteMessage message) throws Exception {
         byte[] cipher;
         try {
-            cipher = api.downloadAsset(message.getAssetKey(), message.getAssetToken());
+            cipher = api.downloadAsset(message.getAssetId(), message.getAssetToken());
         } catch (HttpException e) {
             if (e.getCode() == 401) {
                 Access access = new LoginClient(client).login(email, password);
                 this.api = new API(client, null, access.getToken());
-                cipher = api.downloadAsset(message.getAssetKey(), message.getAssetToken());
+                cipher = api.downloadAsset(message.getAssetId(), message.getAssetToken());
             } else {
                 throw e;
             }

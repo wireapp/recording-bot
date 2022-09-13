@@ -63,29 +63,27 @@ class EventProcessor {
                     collector.add(message);
                 }
                 break;
-                case "conversation.otr-message-add.new-attachment": {
-                    AttachmentMessage message = mapper.readValue(event.payload, AttachmentMessage.class);
+                case "conversation.otr-message-add.asset-data": {
+                    RemoteMessage message = mapper.readValue(event.payload, RemoteMessage.class);
                     collector.add(message);
                 }
                 break;
-                case "conversation.otr-message-add.new-image": {
-                    ImageMessage message = mapper.readValue(event.payload, ImageMessage.class);
+                case "conversation.otr-message-add.file-preview": {
+                    FilePreviewMessage message = mapper.readValue(event.payload, FilePreviewMessage.class);
                     collector.add(message);
                 }
                 break;
-                case "conversation.otr-message-add.new-preview": {
-                    if (withPreviews) {
-                        ImageMessage message = mapper.readValue(event.payload, ImageMessage.class);
-                        collector.add(message);
-                    }
+                case "conversation.otr-message-add.image-preview": {
+                    PhotoPreviewMessage message = mapper.readValue(event.payload, PhotoPreviewMessage.class);
+                    collector.add(message);
                 }
                 break;
-                case "conversation.otr-message-add.new-video": {
+                case "conversation.otr-message-add.video-preview": {
                     VideoMessage message = mapper.readValue(event.payload, VideoMessage.class);
                     collector.add(message);
                 }
                 break;
-                case "conversation.otr-message-add.new-link": {
+                case "conversation.otr-message-add.link-preview": {
                     LinkPreviewMessage message = mapper.readValue(event.payload, LinkPreviewMessage.class);
                     collector.addLink(message);
                 }
@@ -147,9 +145,13 @@ class EventProcessor {
                 break;
             }
         } catch (Exception e) {
-            //e.printStackTrace();
-            Logger.error("EventProcessor.add: msg: %s `%s` err: %s", event.messageId, event.type, e);
+            Logger.exception(e, "EventProcessor.add: msg: %s `%s`", event.messageId, event.type);
         }
+    }
+
+    class Asset {
+        RemoteMessage remote;
+        OriginMessage preview;
     }
 
     private String formatConversation(SystemMessage msg, Cache cache, WireClient client) {
