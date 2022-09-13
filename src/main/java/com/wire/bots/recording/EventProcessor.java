@@ -70,22 +70,17 @@ class EventProcessor {
                 break;
                 case "conversation.otr-message-add.file-preview": {
                     FilePreviewMessage message = mapper.readValue(event.payload, FilePreviewMessage.class);
-                    collector.add(message);
+                    //collector.add(message);
                 }
                 break;
                 case "conversation.otr-message-add.image-preview": {
                     PhotoPreviewMessage message = mapper.readValue(event.payload, PhotoPreviewMessage.class);
-                    collector.add(message);
+                    //collector.add(message);
                 }
                 break;
                 case "conversation.otr-message-add.video-preview": {
                     VideoMessage message = mapper.readValue(event.payload, VideoMessage.class);
-                    collector.add(message);
-                }
-                break;
-                case "conversation.otr-message-add.link-preview": {
-                    LinkPreviewMessage message = mapper.readValue(event.payload, LinkPreviewMessage.class);
-                    collector.addLink(message);
+                    //collector.add(message);
                 }
                 break;
                 case "conversation.member-join": {

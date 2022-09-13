@@ -33,7 +33,7 @@ public class Helper {
     }
 
     static File saveAsset(byte[] image, RemoteMessage message) throws Exception {
-        File file = assetFile(message.getAssetId(), message.getMimeType());
+        File file = assetFile(message.getAssetId(), "image/jpeg");
         return save(image, file);
     }
 

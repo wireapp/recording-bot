@@ -3,6 +3,7 @@ package com.wire.bots.recording.utils;
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
+import com.wire.xenon.backend.models.Asset;
 import com.wire.xenon.backend.models.User;
 import com.wire.xenon.models.*;
 
@@ -100,7 +101,7 @@ public class Collector {
         add(event);
     }
 
-    public void add(RemoteMessage event, PhotoPreviewMessage preview) throws ParseException {
+    public void add(RemoteMessage event) throws ParseException {
         Message message = new Message();
         message.id = event.getMessageId();
         message.timeStamp = event.getTime();
@@ -168,28 +169,28 @@ public class Collector {
         }
     }
 
-    public void addLink(LinkPreviewMessage event) throws ParseException {
-        Message message = new Message();
-        message.id = event.getMessageId();
-        message.timeStamp = event.getTime();
-        message.text = Helper.markdown2Html(event.getText());
-
-        Link link = new Link();
-        link.title = event.getTitle();
-        link.summary = event.getSummary();
-        link.url = event.getUrl();
-
-        File file = cache.getAssetFile(event);
-        if (file.exists())
-            link.preview = getFilename(file);
-
-        message.link = link;
-
-        Sender sender = sender(event.getUserId());
-        sender.add(message);
-
-        append(sender, message, event.getTime());
-    }
+//    public void addLink(LinkPreviewMessage event) throws ParseException {
+//        Message message = new Message();
+//        message.id = event.getMessageId();
+//        message.timeStamp = event.getTime();
+//        message.text = Helper.markdown2Html(event.getText());
+//
+//        Link link = new Link();
+//        link.title = event.getTitle();
+//        link.summary = event.getSummary();
+//        link.url = event.getUrl();
+//
+//        File file = cache.getAssetFile(event);
+//        if (file.exists())
+//            link.preview = getFilename(file);
+//
+//        message.link = link;
+//
+//        Sender sender = sender(event.getUserId());
+//        sender.add(message);
+//
+//        append(sender, message, event.getTime());
+//    }
 
     /**
      * Adds new message with _name_ `system` and avatar based on _type_. If the last message has the same timestamp as
@@ -306,22 +307,22 @@ public class Collector {
 
     @Nullable
     private String getAvatar(UUID userId) {
-        User user = cache.getProfile(userId);
-        String profileAssetKey = getProfileAssetKey(user);
-        if (profileAssetKey != null) {
-            File file = cache.getProfileImage(profileAssetKey);
-            return String.format("/%s/%s", "avatars", file.getName());
-        }
+//        User user = cache.getProfile(userId);
+//        String profileAssetKey = getProfileAssetKey(user.assets);
+//        if (profileAssetKey != null) {
+//            File file = cache.getProfileImage(profileAssetKey);
+//            return String.format("/%s/%s", "avatars", file.getName());
+//        }
         return null;
     }
 
     @Nullable
-    private String getProfileAssetKey(User user) {
-        if (user.assets == null) {
+    private String getProfileAssetKey(@Nullable ArrayList<Asset> assets) {
+        if (assets == null) {
             return null;
         }
 
-        for (Asset asset : user.assets) {
+        for (Asset asset : assets) {
             if (asset.size.equals("preview")) {
                 return asset.key;
             }
