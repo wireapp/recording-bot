@@ -1,4 +1,4 @@
-FROM maven:3.6.3-jdk-8-slim AS build
+FROM maven:3-openjdk-11 AS build
 LABEL description="Wire Recording bot"
 LABEL project="wire-bots:recording"
 
@@ -15,6 +15,7 @@ RUN mvn -Dmaven.test.skip=true package
 # runtime stage
 FROM wirebot/runtime:1.2.0
 
+RUN mkdir /opt/recording
 RUN mkdir /opt/recording/assets
 RUN mkdir /opt/recording/avatars
 RUN mkdir /opt/recording/html
