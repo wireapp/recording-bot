@@ -17,8 +17,8 @@ swagger:
     - https
 
 token: ${SERVICE_TOKEN:-}
-email: ${WIRE_EMAIL:-}
-password: ${WIRE_PASSWORD:-}
+apiHost: ${WIRE_API_HOST:-https://prod-nginz-https.wire.com}
+url: ${PUBLIC_URL:-https://recording.services.wire.com}
 
 database:
   driverClass: org.postgresql.Driver

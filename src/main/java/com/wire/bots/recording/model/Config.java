@@ -26,8 +26,5 @@ import javax.validation.constraints.NotNull;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Config extends Configuration {
     @NotNull
-    public String email;
-
-    @NotNull
-    public String password;
+    public String url;
 }
