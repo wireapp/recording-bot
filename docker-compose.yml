@@ -13,9 +13,8 @@ services:
     environment:
       # put here the token used for testing
       - SERVICE_TOKEN=some-service-token-from-BE
-      - APPENDER_TYPE=json
       - WIRE_API_HOST=""
-      - PUBLIC_URL=
+      - PUBLIC_URL=http://localhost:8080
       # local database
       - DB_URL=jdbc:postgresql://db:5432/recording
       - DB_USER=recording
