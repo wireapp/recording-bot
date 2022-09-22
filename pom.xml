@@ -26,7 +26,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <dropwizard.version>2.1.1</dropwizard.version>
+        <dropwizard.version>2.1.2</dropwizard.version>
+        <lithium.version>3.4.0</lithium.version>
         <openhtml.version>1.0.10</openhtml.version>
         <prometheus.version>0.16.0</prometheus.version>
         <maven.test.skip>true</maven.test.skip>
@@ -36,7 +37,7 @@
         <dependency>
             <groupId>com.wire</groupId>
             <artifactId>lithium</artifactId>
-            <version>3.3.7</version>
+            <version>${lithium.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.spullara.mustache.java</groupId>
