@@ -13,7 +13,10 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 public class Helper {
@@ -72,5 +75,11 @@ public class Helper {
                 .extensions(extensions)
                 .build()
                 .render(document);
+    }
+
+    public static Long date(@Nullable String date) throws ParseException {
+        SimpleDateFormat parser = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+        Date ret = parser.parse(date);
+        return ret.getTime();
     }
 }

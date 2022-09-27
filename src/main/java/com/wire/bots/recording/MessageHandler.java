@@ -5,6 +5,7 @@ import com.waz.model.Messages;
 import com.wire.bots.recording.DAO.ChannelsDAO;
 import com.wire.bots.recording.DAO.EventsDAO;
 import com.wire.bots.recording.model.Event;
+import com.wire.bots.recording.model.Log;
 import com.wire.bots.recording.utils.PdfGenerator;
 import com.wire.lithium.ClientRepo;
 import com.wire.xenon.MessageHandlerBase;
@@ -12,16 +13,23 @@ import com.wire.xenon.WireClient;
 import com.wire.xenon.assets.FileAsset;
 import com.wire.xenon.assets.FileAssetPreview;
 import com.wire.xenon.assets.MessageText;
+import com.wire.xenon.backend.models.Conversation;
+import com.wire.xenon.backend.models.Member;
 import com.wire.xenon.backend.models.SystemMessage;
+import com.wire.xenon.exceptions.HttpException;
 import com.wire.xenon.models.*;
 import com.wire.xenon.tools.Logger;
 import com.wire.xenon.tools.Util;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
 import java.util.List;
 import java.util.UUID;
+
+import static com.wire.bots.recording.utils.Helper.date;
 
 public class MessageHandler extends MessageHandlerBase {
     private final ObjectMapper mapper = new ObjectMapper();
@@ -160,9 +168,10 @@ public class MessageHandler extends MessageHandlerBase {
                 return;
 
             persist(convId, userId, botId, messageId, type, msg);
+
+            kibana(type, msg, client);
         } catch (Exception e) {
-            e.printStackTrace();
-            Logger.error("OnText: %s ex: %s", client.getId(), e);
+            Logger.exception(e, "OnText: %s", client.getId());
         }
     }
 
@@ -395,5 +404,29 @@ public class MessageHandler extends MessageHandlerBase {
             Logger.error(error);
             throw new RuntimeException(error);
         }
+    }
+
+    void kibana(String type, TextMessage msg, WireClient client) throws IOException, HttpException, ParseException {
+        Log.Kibana kibana = new Log.Kibana();
+        kibana.id = msg.getEventId();
+        kibana.type = type;
+        kibana.messageID = msg.getMessageId();
+        kibana.conversationID = msg.getConversationId();
+        kibana.from = msg.getUserId();
+        kibana.sent = date(msg.getTime());
+        kibana.text = msg.getText();
+
+        kibana.sender = client.getUser(msg.getUserId()).handle;
+
+        Conversation conversation = client.getConversation();
+        kibana.conversationName = conversation.name;
+
+        for (Member m : conversation.members) {
+            kibana.participants.add(client.getUser(m.id).handle);
+        }
+
+        Log log = new Log();
+        log.securehold = kibana;
+        System.out.println(mapper.writeValueAsString(log));
     }
 }
