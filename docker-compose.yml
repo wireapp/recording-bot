@@ -19,7 +19,7 @@ services:
       - DB_URL=jdbc:postgresql://db:5432/recording
       - DB_USER=recording
       - DB_PASSWORD=recording
-      - APPENDER_TYPE=json
+      - APPENDER_TYPE=json-console
     depends_on:
       - db
       - elasticsearch
