@@ -9,7 +9,7 @@ env:
   # set docker image for the service - i.e. "wire-bot/poll"
   DOCKER_IMAGE: wire-bot/recording-bot
   # name of the service in the Dagobah - the value for label name, i.e. "polls"
-  SERVICE_NAME: recording-bot
+  SERVICE_NAME: recording
 
 jobs:
   publish:
