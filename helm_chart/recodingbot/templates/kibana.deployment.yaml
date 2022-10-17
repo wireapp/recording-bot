@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-kibana
+  labels:
+    {{- include "recodingbot.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-kibana
+  template:
+    metadata:
+      labels:
+        app: app-kibana
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: docker.elastic.co/kibana/kibana:7.11.0
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: ELASTICSEARCH_HOSTS
+              value: http://elasticsearch-service:9200
+            - name: ELASTICSEARCH_URL
+              value: http://elasticsearch-service:9200
+          ports:
+            - containerPort: 5601
+          
+              
+

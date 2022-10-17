@@ -1,0 +1,40 @@
+replicaCount: 1
+
+app:
+  replica: 3
+  image: nginx #traefik/whoami
+  tag: alpine
+  env:
+    - name: SERVICE_TOKEN
+      value: some-service-token-from-BE
+    - name: PUBLIC_URL
+      value: http://www.example.com
+    - name: DB_URL
+      value: jdbc:postgresql://postgres-service:5432/recording
+    - name: DB_USER
+      value: recording
+    - name: DB_PASSWORD
+      value: recording
+    - name: APPENDER_TYPE
+      value: json-console
+  ports:
+    - containerPort: 80
+    - containerPort: 8080
+    - containerPort: 8081
+
+postgres:
+  env:
+    - name: POSTGRES_USER
+      value: recording
+    - name: POSTGRES_PASSWORD
+      value: recording
+    - name: POSTGRES_DB
+      value: recording
+  dataPath: /home/postgres-data
+  nodeSelector:
+    kubernetes.io/hostname: k3s # node-name
+
+elasticsearch:
+  dataPath: /home/elasticsearch-data
+  nodeSelector:
+    kubernetes.io/hostname: k3s # node-name

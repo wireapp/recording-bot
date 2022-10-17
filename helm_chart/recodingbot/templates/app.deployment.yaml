@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-recodingbot
+  labels:
+    {{- include "recodingbot.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.app.replica }}
+  selector:
+    matchLabels:
+      app: app-recodingbot
+  template:
+    metadata:
+      labels:
+        app: app-recodingbot
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.app.image }}:{{ .Values.app.tag }}"
+          imagePullPolicy: IfNotPresent
+          env:
+            {{- toYaml .Values.app.env | nindent 12 }}
+          ports:
+            {{- toYaml .Values.app.ports | nindent 12 }}
+

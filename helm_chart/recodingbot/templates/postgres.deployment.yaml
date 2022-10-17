@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: data-postgres
+  labels:
+    {{- include "recodingbot.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: data-postgres
+  template:
+    metadata:
+      labels:
+        app: data-postgres
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: postgres:13
+          imagePullPolicy: IfNotPresent
+          env:
+            {{- toYaml .Values.postgres.env | nindent 12 }}
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data/
+      nodeSelector:
+        {{- toYaml .Values.postgres.nodeSelector | nindent 8 }}
+      volumes:
+        - name: postgres-data
+          hostPath:
+            path: {{ .Values.postgres.dataPath }}
