@@ -1,8 +1,33 @@
-replicaCount: 1
+# global:
+
+postgresql:
+  fullnameOverride: data-postgres
+  auth:
+    postgresPassword: recording
+    username: recording
+    password: recording
+    database: recording
+  primary:
+    persistence:
+      existingClaim: postgresql-pv-claim
+  volumePermissions:
+    enabled: true
+
+elasticsearch:
+  enabled: false
+  fullnameOverride: data-elasticsearch
+
+kibana:
+  enabled: false
+  fullnameOverride: app-kibana
+  elasticsearch:
+    port: 9200
+    hosts:
+      - data-elasticsearch
 
 app:
   replica: 3
-  image: nginx #traefik/whoami
+  image: nginx
   tag: alpine
   env:
     - name: SERVICE_TOKEN
@@ -10,31 +35,20 @@ app:
     - name: PUBLIC_URL
       value: http://www.example.com
     - name: DB_URL
-      value: jdbc:postgresql://postgres-service:5432/recording
+      value: jdbc:postgresql://data-postgres:5432/recording
     - name: DB_USER
       value: recording
     - name: DB_PASSWORD
       value: recording
     - name: APPENDER_TYPE
       value: json-console
-  ports:
-    - containerPort: 80
-    - containerPort: 8080
-    - containerPort: 8081
-
-postgres:
-  env:
-    - name: POSTGRES_USER
-      value: recording
-    - name: POSTGRES_PASSWORD
-      value: recording
-    - name: POSTGRES_DB
-      value: recording
-  dataPath: /home/postgres-data
-  nodeSelector:
-    kubernetes.io/hostname: k3s # node-name
-
-elasticsearch:
-  dataPath: /home/elasticsearch-data
-  nodeSelector:
-    kubernetes.io/hostname: k3s # node-name
+  deployPorts:
+    - containerPort: 80 # application port
+  servicePorts:
+    - name: port1
+      # public to the nginx
+      # the app.service is a LoadBalancer
+      # so we can use the nginx with ssl to proxy this port
+      port: 8080
+      # the [deployPorts: containerPort] port
+      targetPort: 80
