@@ -30,13 +30,3 @@ dependencies:
 - name: postgresql
   version: 11.9.8
   repository: https://charts.bitnami.com/bitnami
-
-- name: elasticsearch
-  version: 19.4.4
-  repository: https://charts.bitnami.com/bitnami
-  condition: elasticsearch.enabled
-
-- name: kibana
-  version: 10.2.6
-  repository: https://charts.bitnami.com/bitnami
-  condition: kibana.enabled

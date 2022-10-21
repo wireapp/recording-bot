@@ -13,18 +13,6 @@ postgresql:
   volumePermissions:
     enabled: true
 
-elasticsearch:
-  enabled: false
-  fullnameOverride: data-elasticsearch
-
-kibana:
-  enabled: false
-  fullnameOverride: app-kibana
-  elasticsearch:
-    port: 9200
-    hosts:
-      - data-elasticsearch
-
 app:
   replica: 3
   image: nginx

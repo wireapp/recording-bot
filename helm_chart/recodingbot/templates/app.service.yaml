@@ -7,4 +7,4 @@ spec:
   ports:
     {{- toYaml .Values.app.servicePorts | nindent 4 }}
   selector:
-    app: app-recodingbot
+    app: recodingbot
