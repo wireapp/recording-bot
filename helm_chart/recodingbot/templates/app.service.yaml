@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: app-service
+  name: recordingbot-service
 spec:
   type: LoadBalancer
   ports:
     {{- toYaml .Values.app.servicePorts | nindent 4 }}
   selector:
-    app: recodingbot
+    app: recordingbot
