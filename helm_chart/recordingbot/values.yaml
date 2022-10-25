@@ -15,8 +15,8 @@ postgresql:
 
 app:
   replica: 3
-  image: nginx
-  tag: alpine
+  image: quay.io/asagtani_wire/recordingbot
+  tag: latest
   env:
     - name: SERVICE_TOKEN
       value: # Provide the Recording bot authentication token here
