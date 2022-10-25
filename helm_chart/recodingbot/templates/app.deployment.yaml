@@ -8,11 +8,11 @@ spec:
   replicas: {{ .Values.app.replica }}
   selector:
     matchLabels:
-      app: app-recordingbot
+      app: recordingbot
   template:
     metadata:
       labels:
-        app: app-recordingbot
+        app: recordingbot
     spec:
       containers:
         - name: {{ .Chart.Name }}
@@ -20,6 +20,25 @@ spec:
           imagePullPolicy: IfNotPresent
           env:
             {{- toYaml .Values.app.env | nindent 12 }}
-          ports:
-            {{- toYaml .Values.app.deployPorts | nindent 12 }}
 
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+            - containerPort: 8081
+              protocol: TCP
+
+          livenessProbe:
+            httpGet:
+              path: /status
+              port: 8080
+            initialDelaySeconds: 10
+            timeoutSeconds: 5
+            periodSeconds: 10
+
+          readinessProbe:
+            httpGet:
+              path: /status
+              port: 8080
+            initialDelaySeconds: 10
+            timeoutSeconds: 5
+            periodSeconds: 10

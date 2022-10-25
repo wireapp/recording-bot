@@ -19,24 +19,14 @@ app:
   tag: alpine
   env:
     - name: SERVICE_TOKEN
-      value: some-service-token-from-BE
+      value: # Provide the Recording bot authentication token here
     - name: PUBLIC_URL
-      value: http://www.example.com
+      value: http://www.example.com # Link to the subdomain pointing to recordingbot
     - name: DB_URL
-      value: jdbc:postgresql://data-postgres:5432/recording
+      value: jdbc:postgresql://data-postgres:5432/recording # Link to your Postgres server
     - name: DB_USER
-      value: recording
+      value: recording # Provide your Postgres DB username
     - name: DB_PASSWORD
-      value: recording
+      value: recording # Provide your Postgres DB password
     - name: APPENDER_TYPE
       value: json-console
-  deployPorts:
-    - containerPort: 80 # application port
-  servicePorts:
-    - name: port1
-      # public to the nginx
-      # the app.service is a LoadBalancer
-      # so we can use the nginx with ssl to proxy this port
-      port: 8080
-      # the [deployPorts: containerPort] port
-      targetPort: 80

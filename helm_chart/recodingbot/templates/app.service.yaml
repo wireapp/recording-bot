@@ -3,8 +3,11 @@ kind: Service
 metadata:
   name: recordingbot-service
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   ports:
-    {{- toYaml .Values.app.servicePorts | nindent 4 }}
+    - name: http
+      port: 80
+      targetPort: 8080
+      protocol: TCP
   selector:
     app: recordingbot
