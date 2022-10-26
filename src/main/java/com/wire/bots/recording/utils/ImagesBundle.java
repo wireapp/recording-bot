@@ -36,9 +36,9 @@ public class ImagesBundle extends AssetsBundle {
             try {
                 String format = String.format("file:/%s", path);
 
-                File file = new File(format);
+                File file = new File("/" + path);
                 if (!file.exists()) {
-                    Logger.warning("ImagesBundle: file does not exist: %s", format);
+                    Logger.warning("ImagesBundle: file does not exist: /%s", path);
                     return null;
                 }
                 return new URL(format);
