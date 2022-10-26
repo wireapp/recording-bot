@@ -15,8 +15,10 @@ import com.wire.xenon.assets.FileAssetPreview;
 import com.wire.xenon.assets.MessageText;
 import com.wire.xenon.backend.models.Conversation;
 import com.wire.xenon.backend.models.Member;
+import com.wire.xenon.backend.models.NewBot;
 import com.wire.xenon.backend.models.SystemMessage;
 import com.wire.xenon.exceptions.HttpException;
+import com.wire.xenon.factories.StorageFactory;
 import com.wire.xenon.models.*;
 import com.wire.xenon.tools.Logger;
 import com.wire.xenon.tools.Util;
@@ -41,13 +43,15 @@ public class MessageHandler extends MessageHandlerBase {
             "`/private` - stop publishing this conversation";
 
     private final ChannelsDAO channelsDAO;
+    private final StorageFactory storageFactory;
     private final EventsDAO eventsDAO;
 
     private final EventProcessor eventProcessor = new EventProcessor();
 
-    MessageHandler(EventsDAO eventsDAO, ChannelsDAO channelsDAO) {
+    MessageHandler(EventsDAO eventsDAO, ChannelsDAO channelsDAO, StorageFactory storageFactory) {
         this.eventsDAO = eventsDAO;
         this.channelsDAO = channelsDAO;
+        this.storageFactory = storageFactory;
     }
 
     void warmup(ClientRepo repo) {
@@ -340,6 +344,11 @@ public class MessageHandler extends MessageHandlerBase {
     }
 
     private boolean command(WireClient client, UUID userId, UUID botId, UUID convId, String cmd) throws Exception {
+        // Only owner of the bot can run commands
+        NewBot state = storageFactory.create(client.getId()).getState();
+        if(state.origin.id != userId)
+            return false;
+
         switch (cmd) {
             case "/help": {
                 client.send(new MessageText(HELP), userId);

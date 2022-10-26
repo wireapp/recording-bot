@@ -60,7 +60,7 @@ public class Service extends Server<Config> {
         final EventsDAO eventsDAO = jdbi.onDemand(EventsDAO.class);
         final ChannelsDAO channelsDAO = jdbi.onDemand(ChannelsDAO.class);
 
-        messageHandler = new MessageHandler(eventsDAO, channelsDAO);
+        messageHandler = new MessageHandler(eventsDAO, channelsDAO, getStorageFactory());
         return messageHandler;
     }
 
