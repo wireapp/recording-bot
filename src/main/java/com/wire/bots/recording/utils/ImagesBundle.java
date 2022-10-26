@@ -1,9 +1,9 @@
 package com.wire.bots.recording.utils;
 
 import com.wire.xenon.tools.Logger;
+import com.wire.xenon.tools.Util;
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.servlets.assets.AssetServlet;
-import io.dropwizard.util.ByteStreams;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -34,12 +34,14 @@ public class ImagesBundle extends AssetsBundle {
         protected URL getResourceURL(String path) {
             Logger.info("ImagesBundle: loading: %s", path);
             try {
-                File file = new File(path);
+                String format = String.format("file:/%s", path);
+
+                File file = new File(format);
                 if (!file.exists()) {
-                    Logger.warning("ImagesBundle: file does not exist: %s", path);
+                    Logger.warning("ImagesBundle: file does not exist: %s", format);
                     return null;
                 }
-                return new URL(String.format("file:/%s", path));
+                return new URL(format);
             } catch (MalformedURLException e) {
                 //Logger.error(e.toString());
                 return null;
@@ -49,7 +51,7 @@ public class ImagesBundle extends AssetsBundle {
         @Override
         protected byte[] readResource(URL requestedResourceURL) throws IOException {
             try (InputStream inputStream = requestedResourceURL.openStream()) {
-                return ByteStreams.toByteArray(inputStream);
+                return Util.toByteArray(inputStream);
             } catch (FileNotFoundException e) {
                 Logger.warning("ImagesBundle: %s", e);
                 return null;
