@@ -345,8 +345,11 @@ public class MessageHandler extends MessageHandlerBase {
 
     private boolean command(WireClient client, UUID userId, UUID botId, UUID convId, String cmd) throws Exception {
         // Only owner of the bot can run commands
-        NewBot state = storageFactory.create(client.getId()).getState();
-        if(state.origin.id != userId)
+        NewBot state = storageFactory.create(botId).getState();
+
+        Logger.info("Command: '%s', user: %s, origin: %s", cmd, userId, state.origin.id);
+
+        if (state.origin.id != userId)
             return false;
 
         switch (cmd) {
