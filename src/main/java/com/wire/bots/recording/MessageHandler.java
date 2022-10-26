@@ -29,6 +29,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import static com.wire.bots.recording.utils.Helper.date;
@@ -346,10 +347,7 @@ public class MessageHandler extends MessageHandlerBase {
     private boolean command(WireClient client, UUID userId, UUID botId, UUID convId, String cmd) throws Exception {
         // Only owner of the bot can run commands
         NewBot state = storageFactory.create(botId).getState();
-
-        Logger.info("Command: '%s', user: %s, origin: %s", cmd, userId, state.origin.id);
-
-        if (state.origin.id != userId)
+        if (!Objects.equals(state.origin.id, userId))
             return false;
 
         switch (cmd) {
