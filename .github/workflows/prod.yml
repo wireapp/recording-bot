@@ -1,9 +1,8 @@
-name: Staging Deployment
+name: Release Pipeline
 
 on:
-  push:
-    branches:
-      - staging
+  release:
+    types: published
 
 env:
   # set docker image for the service - i.e. "wire-bot/poll"
@@ -12,15 +11,15 @@ env:
   SERVICE_NAME: recording
 
 jobs:
-  publish:
-    name: Deploy to staging
+  deploy:
+    name: Build and deploy service
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
 
-        # use latest tag as release version in the docker container
       - name: Set Release Version
-        run: echo "RELEASE_VERSION=${GITHUB_SHA}" >> $GITHUB_ENV
+        # use latest tag as release version
+        run: echo "RELEASE_VERSION=${GITHUB_REF:10}" >> $GITHUB_ENV
 
       # extract metadata for labels https://github.com/crazy-max/ghaction-docker-meta
       - name: Docker meta
@@ -48,10 +47,36 @@ jobs:
         with:
           tags: ${{ steps.docker_meta.outputs.tags }}
           labels: ${{ steps.docker_meta.outputs.labels }}
-          push: true
+          # push only if this is indeed a taged release
+          push: ${{ startsWith(github.ref, 'refs/tags/') }}
           build-args: |
             release_version=${{ env.RELEASE_VERSION }}
+      # Checkout our Kubernetes configuration
+      - name: Checkout Rubicon
+        uses: actions/checkout@v2
+        with:
+          repository: zinfra/rubicon
+          # currently main branch is develop
+          ref: develop
+          path: rubicon
+          # private repo so use different git token
+          token: ${{ secrets.RUBICON_GIT_TOKEN }}
 
+      # Update version to the one that was just built
+      - name: Change Version in Rubicon
+        env:
+          IMAGE: ${{ env.DOCKER_IMAGE }}
+          SERVICE: ${{ env.SERVICE_NAME }}
+          VERSION: ${{ env.RELEASE_VERSION }}
+        run: |
+          # go to directory with configuration
+          cd "rubicon/prod/services/$SERVICE"
+          # escape literals for the sed and set output with GCR
+          export SED_PREPARED=$(echo $IMAGE  | awk '{ gsub("/", "\\/", $1); print "eu.gcr.io\\/"$1 }')
+          # update final yaml
+          sed -i".bak" "s/image: $SED_PREPARED.*/image: $SED_PREPARED:$VERSION/g" "$SERVICE.yaml"
+          # delete bakup file
+          rm "$SERVICE.yaml.bak"
       # Setup gcloud CLI
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v0
@@ -65,21 +90,28 @@ jobs:
       - name: Configure Docker Google cloud
         run: |
           gcloud --quiet auth configure-docker
-
       # Get the GKE credentials so we can deploy to the cluster
       - name: Obtain k8s credentials
         env:
-          GKE_CLUSTER: dagobah
+          GKE_CLUSTER: anayotto
           GKE_ZONE: europe-west1-c
         run: |
           gcloud container clusters get-credentials "$GKE_CLUSTER" --zone "$GKE_ZONE"
-
       # K8s is set up, deploy the app
       - name: Deploy the Service
         env:
           SERVICE: ${{ env.SERVICE_NAME }}
         run: |
-          kubectl delete pod -l app=$SERVICE -n staging
-          kubectl describe pod -l app=$SERVICE -n staging
-
-
+          kubectl apply -f "rubicon/prod/services/$SERVICE/$SERVICE.yaml"
+      # Commit all data to Rubicon and open PR
+      - name: Create Rubicon Pull Request
+        uses: peter-evans/create-pull-request@v3
+        with:
+          path: rubicon
+          branch: ${{ env.SERVICE_NAME }}-release
+          token: ${{ secrets.RUBICON_GIT_TOKEN }}
+          labels: version-bump, automerge
+          title: ${{ env.SERVICE_NAME }} release ${{ env.RELEASE_VERSION }}
+          commit-message: ${{ env.SERVICE_NAME }} version bump to ${{ env.RELEASE_VERSION }}
+          body: |
+            This is automatic version bump from the pipeline.
