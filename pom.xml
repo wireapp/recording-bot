@@ -27,7 +27,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <dropwizard.version>2.1.4</dropwizard.version>
-        <lithium.version>3.4.2</lithium.version>
+        <lithium.version>3.4.3</lithium.version>
         <openhtml.version>1.0.10</openhtml.version>
         <prometheus.version>0.16.0</prometheus.version>
         <commonmark.version>0.17.0</commonmark.version>
