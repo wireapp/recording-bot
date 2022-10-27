@@ -32,7 +32,7 @@ public class ImagesBundle extends AssetsBundle {
 
         @Override
         protected URL getResourceURL(String path) {
-            Logger.info("ImagesBundle: loading: %s", path);
+            Logger.debug("ImagesBundle: loading: %s", path);
             try {
                 String format = String.format("file:/%s", path);
 

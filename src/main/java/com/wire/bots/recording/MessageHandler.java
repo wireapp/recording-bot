@@ -368,12 +368,21 @@ public class MessageHandler extends MessageHandlerBase {
                 String pdfFilename = String.format("html/%s.pdf", URLEncoder.encode(convName, StandardCharsets.UTF_8));
                 File pdfFile = PdfGenerator.save(pdfFilename, html, "file:/opt");
 
+                // Post the Preview
                 UUID messageId = UUID.randomUUID();
                 String mimeType = "application/pdf";
                 client.send(new FileAssetPreview(pdfFile.getName(), mimeType, pdfFile.length(), messageId), userId);
 
                 byte[] bytes = Util.toByteArray(new FileInputStream(pdfFile));
-                client.send(new FileAsset(bytes, mimeType, messageId), userId);
+                FileAsset fileAsset = new FileAsset(bytes, mimeType, messageId);
+
+                // Upload Asset
+                AssetKey assetKey = client.uploadAsset(fileAsset);
+                fileAsset.setAssetToken(assetKey.token);
+                fileAsset.setAssetKey(assetKey.id);
+
+                // Post Asset
+                client.send(fileAsset, userId);
                 return true;
             }
             case "/public": {
