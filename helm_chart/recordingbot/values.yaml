@@ -1,18 +1,4 @@
 # global:
-
-postgresql:
-  fullnameOverride: data-postgres
-  auth:
-    postgresPassword: recording
-    username: recording
-    password: recording
-    database: recording
-  primary:
-    persistence:
-      existingClaim: postgresql-pv-claim
-  volumePermissions:
-    enabled: true
-
 app:
   replica: 3
   image: quay.io/asagtani_wire/recordingbot
