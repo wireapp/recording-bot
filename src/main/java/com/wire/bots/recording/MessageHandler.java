@@ -24,6 +24,7 @@ import com.wire.xenon.tools.Logger;
 import com.wire.xenon.tools.Util;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -370,7 +371,9 @@ public class MessageHandler extends MessageHandlerBase {
                 UUID messageId = UUID.randomUUID();
                 String mimeType = "application/pdf";
                 client.send(new FileAssetPreview(pdfFile.getName(), mimeType, pdfFile.length(), messageId), userId);
-                client.send(new FileAsset(messageId, mimeType), userId);
+
+                byte[] bytes = Util.toByteArray(new FileInputStream(pdfFile));
+                client.send(new FileAsset(bytes, mimeType, messageId), userId);
                 return true;
             }
             case "/public": {
