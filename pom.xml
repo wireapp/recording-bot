@@ -26,13 +26,14 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <dropwizard.version>2.1.2</dropwizard.version>
+        <dropwizard.version>2.1.4</dropwizard.version>
         <lithium.version>3.4.2</lithium.version>
         <openhtml.version>1.0.10</openhtml.version>
         <prometheus.version>0.16.0</prometheus.version>
         <commonmark.version>0.17.0</commonmark.version>
         <spullara.version>0.9.10</spullara.version>
         <zip4j.version>2.11.1</zip4j.version>
+        <junit.version>5.9.0</junit.version>
 
         <maven.test.skip>true</maven.test.skip>
     </properties>
@@ -42,6 +43,24 @@
             <groupId>com.wire</groupId>
             <artifactId>lithium</artifactId>
             <version>${lithium.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.dropwizard</groupId>
+            <artifactId>dropwizard-testing</artifactId>
+            <version>${dropwizard.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.github.spullara.mustache.java</groupId>

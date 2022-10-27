@@ -78,6 +78,12 @@ public class MessageHandler extends MessageHandlerBase {
     }
 
     @Override
+    public boolean onNewBot(NewBot newBot, String serviceToken) {
+        Logger.info("New bot: conv: %s, token: %s", newBot.conversation.id, newBot.token);
+        return true;
+    }
+
+    @Override
     public void onNewConversation(WireClient client, SystemMessage msg) {
         try {
             client.send(new MessageText(WELCOME_LABEL));
@@ -226,6 +232,9 @@ public class MessageHandler extends MessageHandlerBase {
         String type = "conversation.otr-message-add.asset-data";
 
         try {
+            String payload = mapper.writeValueAsString(msg);
+            Logger.info("Persisting: '%s'", payload);
+
             persist(convId, userId, botId, messageId, type, msg);
         } catch (Exception e) {
             Logger.error("onAssetData: %s %s %s", botId, messageId, e);
