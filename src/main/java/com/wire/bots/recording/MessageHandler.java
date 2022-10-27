@@ -373,13 +373,14 @@ public class MessageHandler extends MessageHandlerBase {
                 String mimeType = "application/pdf";
                 client.send(new FileAssetPreview(pdfFile.getName(), mimeType, pdfFile.length(), messageId), userId);
 
-                byte[] bytes = Util.toByteArray(new FileInputStream(pdfFile));
-                FileAsset fileAsset = new FileAsset(bytes, mimeType, messageId);
+                FileAsset fileAsset = new FileAsset(pdfFile, mimeType, messageId);
 
                 // Upload Asset
                 AssetKey assetKey = client.uploadAsset(fileAsset);
-                fileAsset.setAssetToken(assetKey.token);
                 fileAsset.setAssetKey(assetKey.id);
+                fileAsset.setAssetToken(assetKey.token);
+
+                Logger.info("Uploaded assetID: %s, token: %s", assetKey.id, assetKey.token);
 
                 // Post Asset
                 client.send(fileAsset, userId);
