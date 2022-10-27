@@ -6,7 +6,7 @@
 
     <artifactId>recording-bot</artifactId>
     <groupId>com.wire.bots</groupId>
-    <version>0.3.0</version>
+    <version>0.3.2</version>
 
     <name>Recording Bot</name>
     <description>Recording Bot Service For Wire</description>
@@ -27,7 +27,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <dropwizard.version>2.1.4</dropwizard.version>
-        <lithium.version>3.4.3</lithium.version>
+        <lithium.version>3.4.4</lithium.version>
         <openhtml.version>1.0.10</openhtml.version>
         <prometheus.version>0.16.0</prometheus.version>
         <commonmark.version>0.17.0</commonmark.version>

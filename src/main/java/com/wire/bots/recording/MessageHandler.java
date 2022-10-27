@@ -380,8 +380,6 @@ public class MessageHandler extends MessageHandlerBase {
                 fileAsset.setAssetKey(assetKey.id);
                 fileAsset.setAssetToken(assetKey.token);
 
-                Logger.info("Uploaded assetID: %s, token: %s", assetKey.id, assetKey.token);
-
                 // Post Asset
                 client.send(fileAsset, userId);
                 return true;
