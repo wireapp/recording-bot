@@ -6,6 +6,7 @@ import com.github.mustachejava.MustacheFactory;
 import com.wire.xenon.backend.models.Asset;
 import com.wire.xenon.backend.models.User;
 import com.wire.xenon.models.*;
+import com.wire.xenon.tools.Logger;
 
 import javax.annotation.Nullable;
 import java.io.*;
@@ -307,12 +308,13 @@ public class Collector {
 
     @Nullable
     private String getAvatar(UUID userId) {
-//        User user = cache.getProfile(userId);
-//        String profileAssetKey = getProfileAssetKey(user.assets);
-//        if (profileAssetKey != null) {
-//            File file = cache.getProfileImage(profileAssetKey);
-//            return String.format("/%s/%s", "avatars", file.getName());
-//        }
+        User user = cache.getUser(userId);
+        String profileAssetKey = getProfileAssetKey(user.assets);
+        if (profileAssetKey != null) {
+            File file = cache.getProfileFile(profileAssetKey);
+            return String.format("/%s/%s", "avatars", file.getName());
+        }
+        Logger.warning("User %s has no profile picture", userId);
         return null;
     }
 

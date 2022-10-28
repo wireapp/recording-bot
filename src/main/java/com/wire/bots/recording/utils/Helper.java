@@ -1,6 +1,5 @@
 package com.wire.bots.recording.utils;
 
-import com.wire.xenon.models.RemoteMessage;
 import com.wire.xenon.tools.Logger;
 import org.commonmark.Extension;
 import org.commonmark.ext.autolink.AutolinkExtension;
@@ -27,16 +26,16 @@ public class Helper {
             .extensions(extensions)
             .build();
 
-    static File getProfile(byte[] profile, String key) throws Exception {
+    static File saveProfileAsset(byte[] image, String key) throws Exception {
         String filename = avatarFile(key);
         File file = new File(filename);
 
-        Logger.info("downloaded profile: %s, size: %d, file: %s", key, profile.length, file.getAbsolutePath());
-        return save(profile, file);
+        Logger.info("downloaded profile: %s, size: %d, file: %s", key, image.length, file.getAbsolutePath());
+        return save(image, file);
     }
 
-    static File saveAsset(byte[] image, RemoteMessage message) throws Exception {
-        File file = assetFile(message.getAssetId(), "image/jpeg");
+    static File saveAsset(byte[] image, String key) throws Exception {
+        File file = assetFile(key, "image/jpeg");
         return save(image, file);
     }
 

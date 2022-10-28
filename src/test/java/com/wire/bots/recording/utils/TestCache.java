@@ -45,4 +45,9 @@ public class TestCache extends Cache {
     File getAssetFile(RemoteMessage message) {
         return new File(String.format("src/test/resources/avatars/%s.png", message.getAssetId()));
     }
+
+    @Override
+    public File getProfileFile(String key) {
+        return new File(String.format("src/test/resources/avatars/%s.png",key));
+    }
 }

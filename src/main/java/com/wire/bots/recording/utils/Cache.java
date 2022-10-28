@@ -1,9 +1,11 @@
 package com.wire.bots.recording.utils;
 
+import com.lambdaworks.crypto.SCryptUtil;
 import com.wire.xenon.WireClient;
 import com.wire.xenon.backend.models.User;
 import com.wire.xenon.exceptions.HttpException;
 import com.wire.xenon.models.RemoteMessage;
+import com.wire.xenon.tools.Util;
 
 import java.io.File;
 import java.util.UUID;
@@ -23,21 +25,33 @@ public class Cache {
     }
 
     File getAssetFile(RemoteMessage message) {
-        return assetsMap.computeIfAbsent(message.getAssetId(), k -> {
+        String key = key(message.getAssetId());
+        return assetsMap.computeIfAbsent(key, k -> {
             try {
-                byte[] image = downloadAsset(message);
-                return Helper.saveAsset(image, message);
+                byte[] image = client.downloadAsset(message.getAssetId(),
+                        message.getAssetToken(),
+                        message.getSha256(),
+                        message.getOtrKey());
+                return Helper.saveAsset(image, key);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         });
     }
 
-    protected byte[] downloadAsset(RemoteMessage message) throws Exception {
-        return client.downloadAsset(message.getAssetId(),
-                message.getAssetToken(),
-                message.getSha256(),
-                message.getOtrKey());
+    private String key(String assetId) {
+        return SCryptUtil.scrypt(assetId, 16384, 8, 1);
+    }
+
+    public File getProfileFile(String key) {
+        return assetsMap.computeIfAbsent(key, k -> {
+            try {
+                byte[] image = client.downloadProfilePicture(key);
+                return Helper.saveProfileAsset(image, k);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     protected User getUserInternal(UUID userId) throws HttpException {
@@ -53,4 +67,6 @@ public class Cache {
             }
         });
     }
+
+
 }
