@@ -6,6 +6,7 @@ import com.wire.bots.recording.DAO.ChannelsDAO;
 import com.wire.bots.recording.DAO.EventsDAO;
 import com.wire.bots.recording.model.Event;
 import com.wire.bots.recording.model.Log;
+import com.wire.bots.recording.utils.Helper;
 import com.wire.bots.recording.utils.PdfGenerator;
 import com.wire.lithium.ClientRepo;
 import com.wire.xenon.MessageHandlerBase;
@@ -24,10 +25,10 @@ import com.wire.xenon.tools.Logger;
 import com.wire.xenon.tools.Util;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Objects;
@@ -64,7 +65,7 @@ public class MessageHandler extends MessageHandlerBase {
                 UUID botId = channelsDAO.getBotId(convId);
                 if (botId != null) {
                     try (WireClient client = repo.getClient(botId)) {
-                        String filename = String.format("html/%s.html", convId);
+                        String filename = getConversationPath(convId);
                         List<Event> events = eventsDAO.listAllAsc(convId);
                         File file = eventProcessor.saveHtml(client, events, filename, false);
                         Logger.debug("warmed up: %s", file.getName());
@@ -335,7 +336,7 @@ public class MessageHandler extends MessageHandlerBase {
         try {
             if (null != channelsDAO.contains(convId)) {
                 List<Event> events = eventsDAO.listAllAsc(convId);
-                String filename = String.format("html/%s.html", convId);
+                String filename = getConversationPath(convId);
 
                 File file = eventProcessor.saveHtml(client, events, filename, false);
                 assert file.exists();
@@ -358,7 +359,7 @@ public class MessageHandler extends MessageHandlerBase {
             }
             case "/pdf": {
                 client.send(new MessageText("Generating PDF..."), userId);
-                String filename = String.format("html/%s.html", convId);
+                String filename = getConversationPath(convId);
                 List<Event> events = eventsDAO.listAllAsc(convId);
 
                 File file = eventProcessor.saveHtml(client, events, filename, true);
@@ -386,13 +387,14 @@ public class MessageHandler extends MessageHandlerBase {
             }
             case "/public": {
                 channelsDAO.insert(convId, botId);
-                String text = String.format("%s/channel/%s.html", Service.instance.getConfig().url, convId);
+                String key = Helper.key(convId.toString());
+                String text = String.format("%s/channel/%s.html", Service.instance.getConfig().url, key);
                 client.send(new MessageText(text), userId);
                 return true;
             }
             case "/private": {
                 channelsDAO.delete(convId);
-                String filename = String.format("html/%s.html", convId);
+                String filename = getConversationPath(convId);
                 boolean delete = new File(filename).delete();
                 String txt = String.format("%s deleted: %s", filename, delete);
                 client.send(new MessageText(txt), userId);
@@ -400,6 +402,11 @@ public class MessageHandler extends MessageHandlerBase {
             }
         }
         return false;
+    }
+
+    private String getConversationPath(UUID convId) throws NoSuchAlgorithmException {
+        String key = Helper.key(convId.toString());
+        return String.format("html/%s.html", key);
     }
 
     private void persist(UUID convId, UUID senderId, UUID userId, UUID msgId, String type, Object msg)

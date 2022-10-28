@@ -1,6 +1,8 @@
 package com.wire.bots.recording;
 
 import com.ning.http.util.Base64;
+import com.wire.bots.recording.utils.Cache;
+import com.wire.bots.recording.utils.Helper;
 import com.wire.lithium.API;
 import com.wire.xenon.assets.FileAsset;
 import com.wire.xenon.models.AssetKey;
@@ -98,9 +100,6 @@ public class AssetTests {
     @Test
     public void hashTest() throws NoSuchAlgorithmException {
         String assetId = "3-4-22d347d5-4e74-44f7-bf5f-d73838bffd79";
-        MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
-        messageDigest.update(assetId.getBytes());
-        String hash = Base64.encode(messageDigest.digest());
-        String encode = UrlEncoded.encodeString(hash);
+        String key = Helper.key(assetId);
     }
 }

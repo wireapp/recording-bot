@@ -6,14 +6,18 @@ import org.commonmark.ext.autolink.AutolinkExtension;
 import org.commonmark.node.Node;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
+import org.eclipse.jetty.util.UrlEncoded;
 
 import javax.annotation.Nullable;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -43,6 +47,7 @@ public class Helper {
         try (DataOutputStream os = new DataOutputStream(new FileOutputStream(file))) {
             os.write(image);
         }
+        Logger.info("Saved asset: %s", file.getAbsolutePath());
         return file;
     }
 
@@ -80,5 +85,12 @@ public class Helper {
         SimpleDateFormat parser = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
         Date ret = parser.parse(date);
         return ret.getTime();
+    }
+
+    public static String key(String assetId) throws NoSuchAlgorithmException {
+        MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+        messageDigest.update(assetId.getBytes());
+        String encode = Base64.getEncoder().encodeToString(messageDigest.digest());
+        return UrlEncoded.encodeString(encode);
     }
 }

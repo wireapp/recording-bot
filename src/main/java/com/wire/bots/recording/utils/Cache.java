@@ -27,7 +27,7 @@ public class Cache {
     }
 
     File getAssetFile(RemoteMessage message) throws NoSuchAlgorithmException {
-        String key = key(message.getAssetId());
+        String key = Helper.key(message.getAssetId());
         return assetsMap.computeIfAbsent(key, k -> {
             try {
                 byte[] image = client.downloadAsset(message.getAssetId(),
@@ -41,10 +41,10 @@ public class Cache {
         });
     }
 
-    public File getProfileFile(String key) {
-        return assetsMap.computeIfAbsent(key, k -> {
+    public File getProfileFile(String assetId) {
+        return assetsMap.computeIfAbsent(assetId, k -> {
             try {
-                byte[] image = client.downloadProfilePicture(key);
+                byte[] image = client.downloadProfilePicture(assetId);
                 return Helper.saveProfileAsset(image, k);
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -64,12 +64,5 @@ public class Cache {
                 throw new RuntimeException(e);
             }
         });
-    }
-
-    private String key(String assetId) throws NoSuchAlgorithmException {
-        MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
-        messageDigest.update(assetId.getBytes());
-        String encode = Base64.getEncoder().encodeToString(messageDigest.digest());
-        return UrlEncoded.encodeString(encode);
     }
 }
