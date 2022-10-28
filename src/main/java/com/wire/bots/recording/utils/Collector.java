@@ -102,7 +102,7 @@ public class Collector {
         add(event);
     }
 
-    public void add(RemoteMessage event) throws ParseException {
+    public void add(RemoteMessage event) throws Exception {
         Message message = new Message();
         message.id = event.getMessageId();
         message.timeStamp = event.getTime();
@@ -116,7 +116,7 @@ public class Collector {
         append(sender, message, event.getTime());
     }
 
-    public void add(RemoteMessage event, VideoPreviewMessage preview) throws ParseException {
+    public void add(RemoteMessage event, VideoPreviewMessage preview) throws Exception {
         Message message = new Message();
         message.id = event.getMessageId();
         message.timeStamp = event.getTime();
@@ -134,7 +134,7 @@ public class Collector {
         append(sender, message, event.getTime());
     }
 
-    public Sender add(RemoteMessage event, FilePreviewMessage preview) throws ParseException {
+    public Sender add(RemoteMessage event, FilePreviewMessage preview) throws Exception {
         Message message = new Message();
         message.id = event.getMessageId();
         message.timeStamp = event.getTime();

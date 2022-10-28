@@ -103,11 +103,6 @@
             <version>4.13.2</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>com.lambdaworks</groupId>
-            <artifactId>scrypt</artifactId>
-            <version>1.4.0</version>
-        </dependency>
     </dependencies>
     <build>
         <plugins>

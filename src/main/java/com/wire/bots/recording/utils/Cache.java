@@ -1,13 +1,15 @@
 package com.wire.bots.recording.utils;
 
-import com.lambdaworks.crypto.SCryptUtil;
 import com.wire.xenon.WireClient;
 import com.wire.xenon.backend.models.User;
 import com.wire.xenon.exceptions.HttpException;
 import com.wire.xenon.models.RemoteMessage;
-import com.wire.xenon.tools.Util;
+import org.eclipse.jetty.util.UrlEncoded;
 
 import java.io.File;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -24,7 +26,7 @@ public class Cache {
         users.remove(userId);
     }
 
-    File getAssetFile(RemoteMessage message) {
+    File getAssetFile(RemoteMessage message) throws NoSuchAlgorithmException {
         String key = key(message.getAssetId());
         return assetsMap.computeIfAbsent(key, k -> {
             try {
@@ -37,10 +39,6 @@ public class Cache {
                 throw new RuntimeException(e);
             }
         });
-    }
-
-    private String key(String assetId) {
-        return SCryptUtil.scrypt(assetId, 16384, 8, 1);
     }
 
     public File getProfileFile(String key) {
@@ -68,5 +66,10 @@ public class Cache {
         });
     }
 
-
+    private String key(String assetId) throws NoSuchAlgorithmException {
+        MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+        messageDigest.update(assetId.getBytes());
+        String encode = Base64.getEncoder().encodeToString(messageDigest.digest());
+        return UrlEncoded.encodeString(encode);
+    }
 }

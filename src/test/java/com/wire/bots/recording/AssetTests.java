@@ -7,6 +7,7 @@ import com.wire.xenon.models.AssetKey;
 import com.wire.xenon.tools.Util;
 import io.dropwizard.testing.ConfigOverride;
 import io.dropwizard.testing.DropwizardTestSupport;
+import org.eclipse.jetty.util.UrlEncoded;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,6 +15,7 @@ import org.junit.Test;
 import javax.ws.rs.client.Client;
 import java.io.File;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -91,5 +93,14 @@ public class AssetTests {
         //{"domain":"staging.zinfra.io","key":"3-2-726da28c-7fa9-4be4-b818-d0939ce7b4a2","token":"3s7abpMBb9YcqhbRqU64fA=="}
         AssetKey assetKey = api.uploadAsset(fileAsset);
 
+    }
+
+    @Test
+    public void hashTest() throws NoSuchAlgorithmException {
+        String assetId = "3-4-22d347d5-4e74-44f7-bf5f-d73838bffd79";
+        MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+        messageDigest.update(assetId.getBytes());
+        String hash = Base64.encode(messageDigest.digest());
+        String encode = UrlEncoded.encodeString(hash);
     }
 }
