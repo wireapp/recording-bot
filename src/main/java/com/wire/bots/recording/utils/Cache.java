@@ -1,15 +1,13 @@
 package com.wire.bots.recording.utils;
 
+import com.wire.bots.recording.Service;
 import com.wire.xenon.WireClient;
 import com.wire.xenon.backend.models.User;
 import com.wire.xenon.exceptions.HttpException;
 import com.wire.xenon.models.RemoteMessage;
-import org.eclipse.jetty.util.UrlEncoded;
 
 import java.io.File;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -27,7 +25,8 @@ public class Cache {
     }
 
     File getAssetFile(RemoteMessage message) throws NoSuchAlgorithmException {
-        String key = Helper.key(message.getAssetId());
+        String salt = Service.instance.getConfig().salt;
+        String key = Helper.key(message.getAssetId(), salt);
         return assetsMap.computeIfAbsent(key, k -> {
             try {
                 byte[] image = client.downloadAsset(message.getAssetId(),

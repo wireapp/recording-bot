@@ -29,12 +29,12 @@ class EventProcessor {
     File saveHtml(WireClient client, List<Event> events, String filename, boolean withPreviews) throws IOException {
         Collector collector = new Collector(new Cache(client));
         for (Event event : events) {
-            add(client, collector, event, withPreviews);
+            add(collector, event, withPreviews);
         }
         return collector.executeFile(filename);
     }
 
-    private void add(WireClient client, Collector collector, Event event, boolean withPreviews) {
+    private void add(Collector collector, Event event, boolean withPreviews) {
         try {
             switch (event.type) {
                 case "conversation.create": {
@@ -42,7 +42,7 @@ class EventProcessor {
                     collector.setConvName(msg.conversation.name);
                     collector.setConversationId(msg.convId);
 
-                    String text = formatConversation(msg, collector.getCache(), client);
+                    String text = formatConversation(msg, collector.getCache());
                     collector.addSystem(text, msg.time, event.type, msg.id);
                 }
                 break;
@@ -149,7 +149,7 @@ class EventProcessor {
         OriginMessage preview;
     }
 
-    private String formatConversation(SystemMessage msg, Cache cache, WireClient client) {
+    private String formatConversation(SystemMessage msg, Cache cache) {
         StringBuilder sb = new StringBuilder();
         User user = cache.getUser(msg.from);
         sb.append(String.format("**%s** started recording in **%s** with: \n",

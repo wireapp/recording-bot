@@ -100,6 +100,6 @@ public class AssetTests {
     @Test
     public void hashTest() throws NoSuchAlgorithmException {
         String assetId = "3-4-22d347d5-4e74-44f7-bf5f-d73838bffd79";
-        String key = Helper.key(assetId);
+        String key = Helper.key(assetId, "abc");
     }
 }

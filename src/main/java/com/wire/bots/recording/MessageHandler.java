@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.waz.model.Messages;
 import com.wire.bots.recording.DAO.ChannelsDAO;
 import com.wire.bots.recording.DAO.EventsDAO;
+import com.wire.bots.recording.model.Config;
 import com.wire.bots.recording.model.Event;
 import com.wire.bots.recording.model.Log;
 import com.wire.bots.recording.utils.Helper;
@@ -50,11 +51,13 @@ public class MessageHandler extends MessageHandlerBase {
     private final EventsDAO eventsDAO;
 
     private final EventProcessor eventProcessor = new EventProcessor();
+    private final Config config;
 
     MessageHandler(EventsDAO eventsDAO, ChannelsDAO channelsDAO, StorageFactory storageFactory) {
         this.eventsDAO = eventsDAO;
         this.channelsDAO = channelsDAO;
         this.storageFactory = storageFactory;
+        config = Service.instance.getConfig();
     }
 
     void warmup(ClientRepo repo) {
@@ -387,8 +390,8 @@ public class MessageHandler extends MessageHandlerBase {
             }
             case "/public": {
                 channelsDAO.insert(convId, botId);
-                String key = Helper.key(convId.toString());
-                String text = String.format("%s/channel/%s.html", Service.instance.getConfig().url, key);
+                String key = Helper.key(convId.toString(), config.salt);
+                String text = String.format("%s/channel/%s.html", config.url, key);
                 client.send(new MessageText(text), userId);
                 return true;
             }
@@ -405,7 +408,7 @@ public class MessageHandler extends MessageHandlerBase {
     }
 
     private String getConversationPath(UUID convId) throws NoSuchAlgorithmException {
-        String key = Helper.key(convId.toString());
+        String key = Helper.key(convId.toString(), config.salt);
         return String.format("html/%s.html", key);
     }
 

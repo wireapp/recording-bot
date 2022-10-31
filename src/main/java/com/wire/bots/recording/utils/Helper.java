@@ -86,10 +86,12 @@ public class Helper {
         return ret.getTime();
     }
 
-    public static String key(String assetId) throws NoSuchAlgorithmException {
+    public static String key(String assetId, String salt) throws NoSuchAlgorithmException {
         MessageDigest messageDigest = MessageDigest.getInstance("SHA-1");
-        messageDigest.update(assetId.getBytes());
+        String value = salt + assetId + salt;
+        messageDigest.update(value.getBytes());
         String encode = Base64.getEncoder().encodeToString(messageDigest.digest());
-        return encode.replace("/[^a-zA-Z0-9-_]/g", "");
+        String replace = encode.replaceAll("[^a-zA-Z0-9]?", "");
+        return replace;
     }
 }

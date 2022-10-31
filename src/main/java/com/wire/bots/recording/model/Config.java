@@ -27,4 +27,6 @@ import javax.validation.constraints.NotNull;
 public class Config extends Configuration {
     @NotNull
     public String url;
+    @NotNull
+    public String salt;
 }
