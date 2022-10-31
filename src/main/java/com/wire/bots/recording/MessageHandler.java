@@ -397,14 +397,40 @@ public class MessageHandler extends MessageHandlerBase {
             }
             case "/private": {
                 channelsDAO.delete(convId);
+
+                // Delete downloaded assets
+                File assetDir = getAssetDir(convId);
+                deleteDir(assetDir);
+
+                // Delete the html file
                 String filename = getConversationPath(convId);
-                boolean delete = new File(filename).delete();
-                String txt = String.format("%s deleted: %s", filename, delete);
+                File htmlFile = new File(filename);
+                boolean delete = htmlFile.delete();
+
+                String txt = String.format("%s deleted: %s", htmlFile.getPath(), delete);
                 client.send(new MessageText(txt), userId);
                 return true;
             }
         }
         return false;
+    }
+
+    private void deleteDir(File assetDir) {
+        File[] files = assetDir.listFiles();
+        if (files == null)
+            return;
+
+        for (File f : files) {
+            if (f.isFile()) {
+                boolean delete = f.delete();
+                Logger.info("Deleted file: %s %s", f.getAbsolutePath(), delete);
+            }
+        }
+    }
+
+    private File getAssetDir(UUID convId) throws NoSuchAlgorithmException {
+        String key = Helper.key(convId.toString(), config.salt);
+        return new File(String.format("assets/%s", key));
     }
 
     private String getConversationPath(UUID convId) throws NoSuchAlgorithmException {

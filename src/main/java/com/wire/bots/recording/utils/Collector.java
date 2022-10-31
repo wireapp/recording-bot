@@ -123,7 +123,7 @@ public class Collector {
 
         File file = cache.getAssetFile(event);
         message.video = new Video();
-        message.video.url = getFilename(file);
+        message.video.url = "/" + file.getPath(); //getFilename(file);
         message.video.width = preview.getWidth();
         message.video.height = preview.getHeight();
         message.video.mimeType = preview.getMimeType();
@@ -140,7 +140,7 @@ public class Collector {
         message.timeStamp = event.getTime();
 
         File file = cache.getAssetFile(event);
-        String assetFilename = getFilename(file);
+        String assetFilename = "/" + file.getPath(); //getFilename(file);
 
         message.attachment = new Attachment();
         message.attachment.name = String.format("%s (%s)", preview.getName(), event.getAssetId());
@@ -299,11 +299,6 @@ public class Collector {
         }
 
         return days.getLast().senders.getLast();
-    }
-
-    private String getFilename(File file) {
-
-        return String.format("/%s/%s", "assets", file.getName());
     }
 
     @Nullable
