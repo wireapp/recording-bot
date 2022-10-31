@@ -108,7 +108,7 @@ public class Collector {
         message.timeStamp = event.getTime();
 
         File file = cache.getAssetFile(event);
-        message.image = getFilename(file);
+        message.image = "/" + file.getPath(); //getFilename(file);
 
         Sender sender = sender(event.getUserId());
         sender.add(message);
