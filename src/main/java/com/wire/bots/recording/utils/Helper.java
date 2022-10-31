@@ -16,10 +16,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 public class Helper {
     private static final List<Extension> extensions = Collections.singletonList(AutolinkExtension.create());
@@ -37,8 +34,8 @@ public class Helper {
         return save(image, file);
     }
 
-    static File saveAsset(byte[] image, String key) throws Exception {
-        File file = assetFile(key, "image/jpeg");
+    static File saveAsset(String convKey, byte[] image, String assetKey) throws Exception {
+        File file = assetFile(convKey, assetKey, "image/jpeg");
         return save(image, file);
     }
 
@@ -50,11 +47,14 @@ public class Helper {
         return file;
     }
 
-    static File assetFile(String assetKey, String mimeType) {
+    static File assetFile(String convKey, String assetKey, String mimeType) {
         String extension = getExtension(mimeType);
         if (extension.isEmpty())
             extension = "error";
-        String filename = String.format("assets/%s.%s", assetKey, extension);
+        String dirName = String.format("assets/%s", convKey);
+        File dir = new File(dirName);
+        dir.mkdir();
+        String filename = String.format("%s/%s.%s", dirName, assetKey, extension);
         return new File(filename);
     }
 

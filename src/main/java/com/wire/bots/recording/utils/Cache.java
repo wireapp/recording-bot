@@ -26,14 +26,15 @@ public class Cache {
 
     File getAssetFile(RemoteMessage message) throws NoSuchAlgorithmException {
         String salt = Service.instance.getConfig().salt;
-        String key = Helper.key(message.getAssetId(), salt);
-        return assetsMap.computeIfAbsent(key, k -> {
+        String assetKey = Helper.key(message.getAssetId(), salt);
+        return assetsMap.computeIfAbsent(assetKey, k -> {
             try {
+                String convKey = Helper.key(message.getConversationId().toString(), salt);
                 byte[] image = client.downloadAsset(message.getAssetId(),
                         message.getAssetToken(),
                         message.getSha256(),
                         message.getOtrKey());
-                return Helper.saveAsset(image, key);
+                return Helper.saveAsset(convKey, image, assetKey);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
