@@ -27,13 +27,13 @@ spec:
                   key: serviceToken
 
             - name: PUBLIC_URL
-              value: "{{ required "Must specify publicURL" .Values.publicURL }}"
+              value: "{{ required "Must specify publicURL" .Values.app.publicURL }}"
 
             - name: DB_URL
-              value: "{{ required "Must specify publicURL" .Values.dbURL }}"
+              value: "{{ required "Must specify publicURL" .Values.app.dbURL }}"
 
             - name: DB_USER
-              value: "{{ required "Must specify dbUser" .Values.dbUser }}"
+              value: "{{ required "Must specify dbUser" .Values.app.dbUser }}"
 
             - name: DB_PASSWORD
               valueFrom:
