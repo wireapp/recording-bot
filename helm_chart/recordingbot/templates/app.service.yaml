@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: recordingbot-service
+  name: recordingbot
 spec:
   type: ClusterIP
   ports:
