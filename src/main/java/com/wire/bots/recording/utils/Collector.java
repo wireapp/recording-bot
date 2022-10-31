@@ -353,7 +353,6 @@ public class Collector {
         this.conversationId = conversationId;
     }
 
-
     public String getConvName() {
         return convName;
     }

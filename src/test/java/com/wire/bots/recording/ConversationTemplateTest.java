@@ -43,10 +43,9 @@ public class ConversationTemplateTest {
         return ret;
     }
 
-    private static ImageMessage img(UUID userId, String time, String key, String mimeType) {
-        ImageMessage ret = new ImageMessage(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), "", userId, time);
-        ret.setAssetKey(key);
-        ret.setMimeType(mimeType);
+    private static RemoteMessage img(UUID userId, String time, String key, String mimeType) {
+        RemoteMessage ret = new RemoteMessage(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), "", userId, time,
+                key, "", null,null);
         return ret;
     }
 
@@ -117,7 +116,7 @@ public class ConversationTemplateTest {
         collector.addSystem("**Dejo** deleted something", friday2, "conversation.otr-message-add.delete-text", UUID.randomUUID());
         collector.add(txt(lipis, saturday, "8"));
         collector.add(quote(dejan, "This was a quote", saturday, seven.getMessageId()));
-        //collector.add(img(lipis, saturday, "ognjiste2", "image/png"));
+        collector.add(img(lipis, saturday, "Wire 2022-02-27 at 2_15 PM", "image/png"));
         //collector.add(img(lipis, saturday, "small", "image/png"));
         collector.add(txt(dejan, saturday, "9"));
         collector.add(txt(dejan, saturday, "10"));

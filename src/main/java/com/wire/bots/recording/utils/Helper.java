@@ -6,7 +6,6 @@ import org.commonmark.ext.autolink.AutolinkExtension;
 import org.commonmark.node.Node;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
-import org.eclipse.jetty.util.UrlEncoded;
 
 import javax.annotation.Nullable;
 import java.io.DataOutputStream;
@@ -88,9 +87,9 @@ public class Helper {
     }
 
     public static String key(String assetId) throws NoSuchAlgorithmException {
-        MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+        MessageDigest messageDigest = MessageDigest.getInstance("SHA-1");
         messageDigest.update(assetId.getBytes());
         String encode = Base64.getEncoder().encodeToString(messageDigest.digest());
-        return UrlEncoded.encodeString(encode);
+        return encode.replace("/[^a-zA-Z0-9-_]/g", "");
     }
 }
