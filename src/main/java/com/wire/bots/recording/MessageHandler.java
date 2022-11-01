@@ -383,11 +383,12 @@ public class MessageHandler extends MessageHandlerBase {
                 AssetKey assetKey = client.uploadAsset(fileAsset);
                 fileAsset.setAssetKey(assetKey.id);
                 fileAsset.setAssetToken(assetKey.token);
+                fileAsset.setDomain(assetKey.domain);
 
-                Logger.info("Asset: key: %s, token: %s, msg: %s",
+                Logger.info("Asset: key: %s, token: %s, domain: %s",
                         fileAsset.getAssetKey(),
                         fileAsset.getAssetToken(),
-                        fileAsset.getMessageId());
+                        fileAsset.getDomain());
 
                 // Post Asset
                 client.send(fileAsset, userId);
