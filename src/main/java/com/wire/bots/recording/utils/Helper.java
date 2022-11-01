@@ -34,8 +34,8 @@ public class Helper {
         return save(image, file);
     }
 
-    static File saveAsset(String convKey, byte[] image, String assetKey) throws Exception {
-        File file = assetFile(convKey, assetKey, "image/jpeg");
+    static File saveAsset(String convKey, byte[] image, String assetKey, String mimeType) throws Exception {
+        File file = assetFile(convKey, assetKey, mimeType);
         return save(image, file);
     }
 

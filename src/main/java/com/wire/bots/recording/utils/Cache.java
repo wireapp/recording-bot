@@ -5,6 +5,7 @@ import com.wire.xenon.WireClient;
 import com.wire.xenon.backend.models.User;
 import com.wire.xenon.exceptions.HttpException;
 import com.wire.xenon.models.RemoteMessage;
+import com.wire.xenon.tools.Util;
 
 import java.io.File;
 import java.security.NoSuchAlgorithmException;
@@ -30,11 +31,14 @@ public class Cache {
         return assetsMap.computeIfAbsent(assetKey, k -> {
             try {
                 String convKey = Helper.key(message.getConversationId().toString(), salt);
-                byte[] image = client.downloadAsset(message.getAssetId(),
+                byte[] asset = client.downloadAsset(message.getAssetId(),
                         message.getAssetToken(),
                         message.getSha256(),
                         message.getOtrKey());
-                return Helper.saveAsset(convKey, image, assetKey);
+                String mimeType = Util.extractMimeType(asset);
+                if (mimeType == null)
+                    mimeType = "image/jpeg";
+                return Helper.saveAsset(convKey, asset, assetKey, mimeType);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
