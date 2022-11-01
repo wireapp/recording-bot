@@ -36,8 +36,6 @@ public class Cache {
                         message.getSha256(),
                         message.getOtrKey());
                 String mimeType = Util.extractMimeType(asset);
-                if (mimeType == null)
-                    mimeType = "image/jpeg";
                 return Helper.saveAsset(convKey, asset, assetKey, mimeType);
             } catch (Exception e) {
                 throw new RuntimeException(e);

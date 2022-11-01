@@ -108,7 +108,16 @@ public class Collector {
         message.timeStamp = event.getTime();
 
         File file = cache.getAssetFile(event);
-        message.image = "/" + file.getPath(); //getFilename(file);
+
+        if (file.getName().endsWith(".xyz")) {
+            // attachment
+            message.attachment = new Attachment();
+            message.attachment.name = String.format("%s (%s)", file.getName(), event.getAssetId());
+            message.attachment.url = "file:///" + file.getPath();
+        } else {
+            // image
+            message.image = "/" + file.getPath();
+        }
 
         Sender sender = sender(event.getUserId());
         sender.add(message);
@@ -123,7 +132,7 @@ public class Collector {
 
         File file = cache.getAssetFile(event);
         message.video = new Video();
-        message.video.url = "/" + file.getPath(); //getFilename(file);
+        message.video.url = "/" + file.getPath();
         message.video.width = preview.getWidth();
         message.video.height = preview.getHeight();
         message.video.mimeType = preview.getMimeType();
@@ -134,16 +143,16 @@ public class Collector {
         append(sender, message, event.getTime());
     }
 
-    public Sender add(RemoteMessage event, FilePreviewMessage preview) throws Exception {
+    public Sender add(RemoteMessage event, String name) throws Exception {
         Message message = new Message();
         message.id = event.getMessageId();
         message.timeStamp = event.getTime();
 
         File file = cache.getAssetFile(event);
-        String assetFilename = "/" + file.getPath(); //getFilename(file);
+        String assetFilename = "/" + file.getPath();
 
         message.attachment = new Attachment();
-        message.attachment.name = String.format("%s (%s)", preview.getName(), event.getAssetId());
+        message.attachment.name = String.format("%s (%s)", name, event.getAssetId());
         message.attachment.url = "file://" + assetFilename;
 
         Sender sender = sender(event.getUserId());
