@@ -112,8 +112,8 @@ public class Collector {
         if (file.getName().endsWith(".xyz")) {
             // attachment
             message.attachment = new Attachment();
-            message.attachment.name = String.format("%s (%s)", file.getName(), event.getAssetId());
-            message.attachment.url = "file:///" + file.getPath();
+            message.attachment.name = String.format("%s", file.getName());
+            message.attachment.url = "/" + file.getPath();
         } else {
             // image
             message.image = "/" + file.getPath();
