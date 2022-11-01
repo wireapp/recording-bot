@@ -220,7 +220,7 @@ public class Collector {
 
         Message message = new Message();
         message.id = msgId;
-        message.text = Helper.markdown2Html(text);
+        message.text = text; //Helper.markdown2Html(text);
         message.timeStamp = dateTime;
 
         Sender sender = system(type);
@@ -231,7 +231,7 @@ public class Collector {
 
     private String getText(TextMessage event) {
         String text = event.getText();
-        return Helper.markdown2Html(text);
+        return text;// Helper.markdown2Html(text);
     }
 
     @Nullable
