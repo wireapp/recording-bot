@@ -370,7 +370,8 @@ public class MessageHandler extends MessageHandlerBase {
 
                 String convName = client.getConversation().name;
                 String pdfFilename = String.format("html/%s.pdf", URLEncoder.encode(convName, StandardCharsets.UTF_8));
-                File pdfFile = PdfGenerator.save(pdfFilename, html, "file:/opt");
+                String baseUrl = "file:/opt/recording";
+                File pdfFile = PdfGenerator.save(pdfFilename, html, baseUrl);
 
                 // Post the Preview
                 UUID messageId = UUID.randomUUID();
