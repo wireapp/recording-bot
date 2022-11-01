@@ -49,7 +49,7 @@ public class Service extends Server<Config> {
         bootstrap.addBundle(new AssetsBundle("/scripts", "/scripts", "index.htm", "scripts"));
         bootstrap.addBundle(new ImagesBundle(workingDir + "/avatars", "/avatars", "avatars"));
         bootstrap.addBundle(new ImagesBundle(workingDir + "/html", "/channel", "channels"));
-        bootstrap.addBundle(new ImagesBundle(workingDir + "/assets", "/assets", "assets"));
+        bootstrap.addBundle(new ImagesBundle(workingDir + "/assets", "/assets", "assets", "application/octet-stream"));
 
         Application<Config> application = bootstrap.getApplication();
         instance = (Service) application;
