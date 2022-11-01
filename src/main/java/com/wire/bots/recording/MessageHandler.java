@@ -384,6 +384,11 @@ public class MessageHandler extends MessageHandlerBase {
                 fileAsset.setAssetKey(assetKey.id);
                 fileAsset.setAssetToken(assetKey.token);
 
+                Logger.info("Asset: key: %s, token: %s, msg: %s",
+                        fileAsset.getAssetKey(),
+                        fileAsset.getAssetToken(),
+                        fileAsset.getMessageId());
+
                 // Post Asset
                 client.send(fileAsset, userId);
                 return true;
