@@ -91,7 +91,6 @@ public class Helper {
         String value = salt + assetId + salt;
         messageDigest.update(value.getBytes());
         String encode = Base64.getEncoder().encodeToString(messageDigest.digest());
-        String replace = encode.replaceAll("[^a-zA-Z0-9]?", "");
-        return replace;
+        return encode.replaceAll("[^a-zA-Z0-9]?", "");
     }
 }
