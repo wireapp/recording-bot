@@ -189,12 +189,12 @@
             {{#messages}}
             <tr>
               <td class="message">
-                <a id="{{ id }}"></a>
+                <a id="{{ id }}" target="_blank" rel="nofollow noopener noreferrer"></a>
                 {{#quotedMessage}}
                 <blockquote>
                   <strong>{{ name }}</strong>
                   {{{ text }}}
-                  <a class="link" href="#{{ id }}">Original message from {{ date }}</a>
+                  <a class="link" target="_blank" rel="nofollow noopener noreferrer" href="#{{ id }}">Original message from {{ date }}</a>
                 </blockquote>
                 {{/quotedMessage}}
                 {{{ text }}}
@@ -202,7 +202,7 @@
                 <img class="image" src="{{ image }}" />
                 {{/image}}
                 {{#attachment}}
-                <a class="attachment" href="{{ url }}">{{ name }}</a>
+                <a class="attachment" target="_blank" rel="nofollow noopener noreferrer" href="{{ url }}" >{{ name }}</a>
                 {{/attachment}}
                 {{#link}}
                 <blockquote>
@@ -210,7 +210,7 @@
                     <strong>{{ title }}</strong>
                   </p>
                   <img class="preview" src="{{ preview }}" />
-                  <a class="link" href="{{ url }}">{{ url }}</a>
+                  <a class="link" target="_blank" rel="nofollow noopener noreferrer" href="{{ url }}">{{ url }}</a>
                 </blockquote>
                 {{/link}}
                 {{#likes}}
