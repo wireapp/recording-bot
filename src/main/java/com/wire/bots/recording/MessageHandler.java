@@ -369,6 +369,10 @@ public class MessageHandler extends MessageHandlerBase {
                 String html = Util.readFile(file);
 
                 String convName = client.getConversation().name;
+                if(convName == null){
+                    convName = "Recording";
+                }
+
                 String pdfFilename = String.format("html/%s.pdf", URLEncoder.encode(convName, StandardCharsets.UTF_8));
                 String baseUrl = "file:/opt/recording";
                 File pdfFile = PdfGenerator.save(pdfFilename, html, baseUrl);
