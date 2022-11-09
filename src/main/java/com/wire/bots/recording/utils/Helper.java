@@ -76,6 +76,7 @@ public class Helper {
                 .builder()
                 .escapeHtml(true)
                 .extensions(extensions)
+                .sanitizeUrls(true)
                 .build()
                 .render(document);
     }
