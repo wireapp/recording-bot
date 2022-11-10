@@ -70,7 +70,7 @@ class EventProcessor {
                 break;
                 case "conversation.otr-message-add.file-preview": {
                     FilePreviewMessage message = mapper.readValue(event.payload, FilePreviewMessage.class);
-                    //collector.add(message);
+                    collector.add(message);
                 }
                 break;
                 case "conversation.otr-message-add.image-preview": {
