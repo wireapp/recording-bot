@@ -4,12 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wire.bots.recording.model.Event;
 import com.wire.bots.recording.utils.Cache;
 import com.wire.bots.recording.utils.Collector;
-import com.wire.bots.sdk.WireClient;
-import com.wire.bots.sdk.models.*;
-import com.wire.bots.sdk.server.model.Member;
-import com.wire.bots.sdk.server.model.SystemMessage;
-import com.wire.bots.sdk.server.model.User;
-import com.wire.bots.sdk.tools.Logger;
+import com.wire.xenon.WireClient;
+import com.wire.xenon.backend.models.Member;
+import com.wire.xenon.backend.models.SystemMessage;
+import com.wire.xenon.backend.models.User;
+import com.wire.xenon.models.*;
+import com.wire.xenon.tools.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,12 +29,12 @@ class EventProcessor {
     File saveHtml(WireClient client, List<Event> events, String filename, boolean withPreviews) throws IOException {
         Collector collector = new Collector(new Cache(client));
         for (Event event : events) {
-            add(client, collector, event, withPreviews);
+            add(collector, event, withPreviews);
         }
         return collector.executeFile(filename);
     }
 
-    private void add(WireClient client, Collector collector, Event event, boolean withPreviews) {
+    private void add(Collector collector, Event event, boolean withPreviews) {
         try {
             switch (event.type) {
                 case "conversation.create": {
@@ -42,7 +42,7 @@ class EventProcessor {
                     collector.setConvName(msg.conversation.name);
                     collector.setConversationId(msg.convId);
 
-                    String text = formatConversation(msg, collector.getCache(), client);
+                    String text = formatConversation(msg, collector.getCache());
                     collector.addSystem(text, msg.time, event.type, msg.id);
                 }
                 break;
@@ -63,31 +63,24 @@ class EventProcessor {
                     collector.add(message);
                 }
                 break;
-                case "conversation.otr-message-add.new-attachment": {
-                    AttachmentMessage message = mapper.readValue(event.payload, AttachmentMessage.class);
+                case "conversation.otr-message-add.asset-data": {
+                    RemoteMessage message = mapper.readValue(event.payload, RemoteMessage.class);
                     collector.add(message);
                 }
                 break;
-                case "conversation.otr-message-add.new-image": {
-                    ImageMessage message = mapper.readValue(event.payload, ImageMessage.class);
+                case "conversation.otr-message-add.file-preview": {
+                    FilePreviewMessage message = mapper.readValue(event.payload, FilePreviewMessage.class);
                     collector.add(message);
                 }
                 break;
-                case "conversation.otr-message-add.new-preview": {
-                    if (withPreviews) {
-                        ImageMessage message = mapper.readValue(event.payload, ImageMessage.class);
-                        collector.add(message);
-                    }
+                case "conversation.otr-message-add.image-preview": {
+                    PhotoPreviewMessage message = mapper.readValue(event.payload, PhotoPreviewMessage.class);
+                    //collector.add(message);
                 }
                 break;
-                case "conversation.otr-message-add.new-video": {
+                case "conversation.otr-message-add.video-preview": {
                     VideoMessage message = mapper.readValue(event.payload, VideoMessage.class);
-                    collector.add(message);
-                }
-                break;
-                case "conversation.otr-message-add.new-link": {
-                    LinkPreviewMessage message = mapper.readValue(event.payload, LinkPreviewMessage.class);
-                    collector.addLink(message);
+                    //collector.add(message);
                 }
                 break;
                 case "conversation.member-join": {
@@ -147,12 +140,16 @@ class EventProcessor {
                 break;
             }
         } catch (Exception e) {
-            //e.printStackTrace();
-            Logger.error("EventProcessor.add: msg: %s `%s` err: %s", event.messageId, event.type, e);
+            Logger.exception(e, "EventProcessor.add: msg: %s `%s`", event.messageId, event.type);
         }
     }
 
-    private String formatConversation(SystemMessage msg, Cache cache, WireClient client) {
+    class Asset {
+        RemoteMessage remote;
+        OriginMessage preview;
+    }
+
+    private String formatConversation(SystemMessage msg, Cache cache) {
         StringBuilder sb = new StringBuilder();
         User user = cache.getUser(msg.from);
         sb.append(String.format("**%s** started recording in **%s** with: \n",

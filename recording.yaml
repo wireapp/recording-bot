@@ -8,7 +8,7 @@ server:
 logging:
   level: INFO
   loggers:
-    "com.wire.bots.logger": ${LOG_LEVEL:-INFO}
+    "com.wire.xenon.tools.logger": ${LOG_LEVEL:-INFO}
 
 swagger:
   resourcePackage: com.wire.bots.sdk.server.resources
@@ -16,9 +16,10 @@ swagger:
     - http
     - https
 
-auth: ${SERVICE_TOKEN:-}
-email: ${WIRE_EMAIL:-}
-password: ${WIRE_PASSWORD:-}
+token: ${SERVICE_TOKEN:-}
+apiHost: ${WIRE_API_HOST:-https://prod-nginz-https.wire.com}
+url: ${PUBLIC_URL:-https://recording.services.wire.com}
+salt: ${SALT:-abc}
 
 database:
   driverClass: org.postgresql.Driver

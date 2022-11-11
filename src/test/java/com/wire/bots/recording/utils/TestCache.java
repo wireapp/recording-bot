@@ -1,9 +1,9 @@
 package com.wire.bots.recording.utils;
 
 import com.wire.bots.recording.ConversationTemplateTest;
-import com.wire.bots.sdk.models.MessageAssetBase;
-import com.wire.bots.sdk.server.model.Asset;
-import com.wire.bots.sdk.server.model.User;
+import com.wire.xenon.backend.models.Asset;
+import com.wire.xenon.backend.models.User;
+import com.wire.xenon.models.RemoteMessage;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -16,7 +16,7 @@ public class TestCache extends Cache {
     }
 
     @Override
-    public User getProfile(UUID userId) {
+    protected User getUserInternal(UUID userId)  {
         User ret = new User();
         ret.id = userId;
         ret.assets = new ArrayList<>();
@@ -38,19 +38,16 @@ public class TestCache extends Cache {
 
     @Override
     public User getUser(UUID userId) {
-        return getProfile(userId);
+        return getUserInternal(userId);
     }
 
     @Override
-    File getProfileImage(String key) {
-        return new File(String.format("src/test/resources/avatars/%s.png", key));
+    File getAssetFile(RemoteMessage message) {
+        return new File(String.format("src/test/resources/avatars/%s.png", message.getAssetId()));
     }
 
     @Override
-    File getAssetFile(MessageAssetBase message) {
-        String extension = Helper.getExtension(message.getMimeType());
-        return new File(String.format("src/test/resources/images/%s.%s",
-                message.getAssetKey(),
-                extension));
+    public File getProfileFile(String key) {
+        return new File(String.format("src/test/resources/avatars/%s.png",key));
     }
 }

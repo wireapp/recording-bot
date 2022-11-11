@@ -3,9 +3,10 @@ package com.wire.bots.recording.utils;
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
-import com.wire.bots.sdk.models.*;
-import com.wire.bots.sdk.server.model.Asset;
-import com.wire.bots.sdk.server.model.User;
+import com.wire.xenon.backend.models.Asset;
+import com.wire.xenon.backend.models.User;
+import com.wire.xenon.models.*;
+import com.wire.xenon.tools.Logger;
 
 import javax.annotation.Nullable;
 import java.io.*;
@@ -73,7 +74,7 @@ public class Collector {
         return df.format(date);
     }
 
-    public Sender add(TextMessage event) throws ParseException {
+    public void add(TextMessage event) throws ParseException {
         Message message = new Message();
         message.id = event.getMessageId();
 
@@ -85,7 +86,7 @@ public class Collector {
         Sender sender = sender(event.getUserId());
         sender.add(message);
 
-        return append(sender, message, event.getTime());
+        append(sender, message, event.getTime());
     }
 
     private String extractYouTube(String text) {
@@ -96,36 +97,27 @@ public class Collector {
         return null;
     }
 
-    public Sender addEdit(EditedTextMessage event) throws ParseException {
+    public void addEdit(EditedTextMessage event) throws ParseException {
         addSystem("✏ Edited", event.getTime(), "", event.getMessageId());
-        return add(event);
+        add(event);
     }
 
-    public Sender add(ImageMessage event) throws ParseException {
+    public void add(RemoteMessage event) throws Exception {
         Message message = new Message();
         message.id = event.getMessageId();
         message.timeStamp = event.getTime();
 
         File file = cache.getAssetFile(event);
-        message.image = getFilename(file);
 
-        Sender sender = sender(event.getUserId());
-        sender.add(message);
-
-        return append(sender, message, event.getTime());
-    }
-
-    public void add(VideoMessage event) throws ParseException {
-        Message message = new Message();
-        message.id = event.getMessageId();
-        message.timeStamp = event.getTime();
-
-        File file = cache.getAssetFile(event);
-        message.video = new Video();
-        message.video.url = getFilename(file);
-        message.video.width = event.getWidth();
-        message.video.height = event.getHeight();
-        message.video.mimeType = event.getMimeType();
+        if (file.getName().endsWith(".xyz")) {
+            // attachment
+            message.attachment = new Attachment();
+            message.attachment.name = String.format("%s", file.getName());
+            message.attachment.url = "/" + file.getPath();
+        } else {
+            // image
+            message.image = "/" + file.getPath();
+        }
 
         Sender sender = sender(event.getUserId());
         sender.add(message);
@@ -133,16 +125,38 @@ public class Collector {
         append(sender, message, event.getTime());
     }
 
-    public Sender add(AttachmentMessage event) throws ParseException {
+    public void add(FilePreviewMessage message) throws ParseException {
+        addSystem(message.getName(), message.getTime(), "file-preview", message.getMessageId());
+    }
+
+    public void add(RemoteMessage event, VideoPreviewMessage preview) throws Exception {
         Message message = new Message();
         message.id = event.getMessageId();
         message.timeStamp = event.getTime();
 
         File file = cache.getAssetFile(event);
-        String assetFilename = getFilename(file);
+        message.video = new Video();
+        message.video.url = "/" + file.getPath();
+        message.video.width = preview.getWidth();
+        message.video.height = preview.getHeight();
+        message.video.mimeType = preview.getMimeType();
+
+        Sender sender = sender(event.getUserId());
+        sender.add(message);
+
+        append(sender, message, event.getTime());
+    }
+
+    public Sender add(RemoteMessage event, String name) throws Exception {
+        Message message = new Message();
+        message.id = event.getMessageId();
+        message.timeStamp = event.getTime();
+
+        File file = cache.getAssetFile(event);
+        String assetFilename = "/" + file.getPath();
 
         message.attachment = new Attachment();
-        message.attachment.name = String.format("%s (%s)", event.getName(), event.getAssetKey());
+        message.attachment.name = String.format("%s (%s)", name, event.getAssetId());
         message.attachment.url = "file://" + assetFilename;
 
         Sender sender = sender(event.getUserId());
@@ -169,28 +183,28 @@ public class Collector {
         }
     }
 
-    public void addLink(LinkPreviewMessage event) throws ParseException {
-        Message message = new Message();
-        message.id = event.getMessageId();
-        message.timeStamp = event.getTime();
-        message.text = Helper.markdown2Html(event.getText());
-
-        Link link = new Link();
-        link.title = event.getTitle();
-        link.summary = event.getSummary();
-        link.url = event.getUrl();
-
-        File file = cache.getAssetFile(event);
-        if (file.exists())
-            link.preview = getFilename(file);
-
-        message.link = link;
-
-        Sender sender = sender(event.getUserId());
-        sender.add(message);
-
-        append(sender, message, event.getTime());
-    }
+//    public void addLink(LinkPreviewMessage event) throws ParseException {
+//        Message message = new Message();
+//        message.id = event.getMessageId();
+//        message.timeStamp = event.getTime();
+//        message.text = Helper.markdown2Html(event.getText());
+//
+//        Link link = new Link();
+//        link.title = event.getTitle();
+//        link.summary = event.getSummary();
+//        link.url = event.getUrl();
+//
+//        File file = cache.getAssetFile(event);
+//        if (file.exists())
+//            link.preview = getFilename(file);
+//
+//        message.link = link;
+//
+//        Sender sender = sender(event.getUserId());
+//        sender.add(message);
+//
+//        append(sender, message, event.getTime());
+//    }
 
     /**
      * Adds new message with _name_ `system` and avatar based on _type_. If the last message has the same timestamp as
@@ -203,9 +217,10 @@ public class Collector {
      * @return true if the message was added
      * @throws ParseException
      */
-    public boolean addSystem(String text, String dateTime, String type, UUID msgId) throws ParseException {
-        if (lastMessage != null && lastMessage.timeStamp.equals(dateTime))
-            return false;
+    public void addSystem(String text, String dateTime, String type, UUID msgId) throws ParseException {
+        if (lastMessage != null && lastMessage.timeStamp.equals(dateTime)) {
+            return;
+        }
 
         Message message = new Message();
         message.id = msgId;
@@ -216,7 +231,6 @@ public class Collector {
         sender.add(message);
 
         append(sender, message, dateTime);
-        return true;
     }
 
     private String getText(TextMessage event) {
@@ -300,29 +314,25 @@ public class Collector {
         return days.getLast().senders.getLast();
     }
 
-    private String getFilename(File file) {
-
-        return String.format("/%s/%s", "assets", file.getName());
-    }
-
     @Nullable
     private String getAvatar(UUID userId) {
-        User user = cache.getProfile(userId);
-        String profileAssetKey = getProfileAssetKey(user);
+        User user = cache.getUser(userId);
+        String profileAssetKey = getProfileAssetKey(user.assets);
         if (profileAssetKey != null) {
-            File file = cache.getProfileImage(profileAssetKey);
+            File file = cache.getProfileFile(profileAssetKey);
             return String.format("/%s/%s", "avatars", file.getName());
         }
+        Logger.warning("User %s has no profile picture", userId);
         return null;
     }
 
     @Nullable
-    private String getProfileAssetKey(User user) {
-        if (user.assets == null) {
+    private String getProfileAssetKey(@Nullable ArrayList<Asset> assets) {
+        if (assets == null) {
             return null;
         }
 
-        for (Asset asset : user.assets) {
+        for (Asset asset : assets) {
             if (asset.size.equals("preview")) {
                 return asset.key;
             }
@@ -350,7 +360,6 @@ public class Collector {
     public void setConversationId(UUID conversationId) {
         this.conversationId = conversationId;
     }
-
 
     public String getConvName() {
         return convName;

@@ -1,16 +1,25 @@
 package com.wire.bots.recording.utils;
 
-import com.wire.bots.sdk.tools.Logger;
+import com.wire.xenon.tools.Logger;
+import com.wire.xenon.tools.Util;
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.servlets.assets.AssetServlet;
 
 import javax.annotation.Nullable;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 public class ImagesBundle extends AssetsBundle {
+    public ImagesBundle(String resourcePath, String uriPath, String name, String mediaType) {
+        super(resourcePath, uriPath, "index.htm", name, mediaType);
+    }
+
     public ImagesBundle(String resourcePath, String uriPath, String name) {
         super(resourcePath, uriPath, "index.htm", name);
     }
@@ -26,12 +35,29 @@ public class ImagesBundle extends AssetsBundle {
         }
 
         @Override
-        protected URL getResourceUrl(String path) {
+        protected URL getResourceURL(String path) {
             Logger.debug("ImagesBundle: loading: %s", path);
             try {
-                return new URL(String.format("file:/%s", path));
+                String format = String.format("file:/%s", path);
+
+                File file = new File("/" + path);
+                if (!file.exists()) {
+                    Logger.warning("ImagesBundle: file does not exist: /%s", path);
+                    return null;
+                }
+                return new URL(format);
             } catch (MalformedURLException e) {
                 //Logger.error(e.toString());
+                return null;
+            }
+        }
+
+        @Override
+        protected byte[] readResource(URL requestedResourceURL) throws IOException {
+            try (InputStream inputStream = requestedResourceURL.openStream()) {
+                return Util.toByteArray(inputStream);
+            } catch (FileNotFoundException e) {
+                Logger.warning("ImagesBundle: %s", e);
                 return null;
             }
         }

@@ -4,20 +4,38 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.waz.model.Messages;
 import com.wire.bots.recording.DAO.ChannelsDAO;
 import com.wire.bots.recording.DAO.EventsDAO;
+import com.wire.bots.recording.model.Config;
 import com.wire.bots.recording.model.Event;
+import com.wire.bots.recording.model.Log;
+import com.wire.bots.recording.utils.Helper;
 import com.wire.bots.recording.utils.PdfGenerator;
-import com.wire.bots.sdk.ClientRepo;
-import com.wire.bots.sdk.MessageHandlerBase;
-import com.wire.bots.sdk.WireClient;
-import com.wire.bots.sdk.models.*;
-import com.wire.bots.sdk.server.model.SystemMessage;
-import com.wire.bots.sdk.tools.Logger;
-import com.wire.bots.sdk.tools.Util;
+import com.wire.lithium.ClientRepo;
+import com.wire.xenon.MessageHandlerBase;
+import com.wire.xenon.WireClient;
+import com.wire.xenon.assets.FileAsset;
+import com.wire.xenon.assets.FileAssetPreview;
+import com.wire.xenon.assets.MessageText;
+import com.wire.xenon.backend.models.Conversation;
+import com.wire.xenon.backend.models.Member;
+import com.wire.xenon.backend.models.NewBot;
+import com.wire.xenon.backend.models.SystemMessage;
+import com.wire.xenon.exceptions.HttpException;
+import com.wire.xenon.factories.StorageFactory;
+import com.wire.xenon.models.*;
+import com.wire.xenon.tools.Logger;
+import com.wire.xenon.tools.Util;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
+import java.text.ParseException;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
+
+import static com.wire.bots.recording.utils.Helper.date;
 
 public class MessageHandler extends MessageHandlerBase {
     private final ObjectMapper mapper = new ObjectMapper();
@@ -29,13 +47,17 @@ public class MessageHandler extends MessageHandlerBase {
             "`/private` - stop publishing this conversation";
 
     private final ChannelsDAO channelsDAO;
+    private final StorageFactory storageFactory;
     private final EventsDAO eventsDAO;
 
     private final EventProcessor eventProcessor = new EventProcessor();
+    private final Config config;
 
-    MessageHandler(EventsDAO eventsDAO, ChannelsDAO channelsDAO) {
+    MessageHandler(EventsDAO eventsDAO, ChannelsDAO channelsDAO, StorageFactory storageFactory) {
         this.eventsDAO = eventsDAO;
         this.channelsDAO = channelsDAO;
+        this.storageFactory = storageFactory;
+        config = Service.instance.getConfig();
     }
 
     void warmup(ClientRepo repo) {
@@ -46,7 +68,7 @@ public class MessageHandler extends MessageHandlerBase {
                 UUID botId = channelsDAO.getBotId(convId);
                 if (botId != null) {
                     try (WireClient client = repo.getClient(botId)) {
-                        String filename = String.format("html/%s.html", convId);
+                        String filename = getConversationPath(convId);
                         List<Event> events = eventsDAO.listAllAsc(convId);
                         File file = eventProcessor.saveHtml(client, events, filename, false);
                         Logger.debug("warmed up: %s", file.getName());
@@ -63,8 +85,8 @@ public class MessageHandler extends MessageHandlerBase {
     @Override
     public void onNewConversation(WireClient client, SystemMessage msg) {
         try {
-            client.sendText(WELCOME_LABEL);
-            client.sendDirectText(HELP, msg.from);
+            client.send(new MessageText(WELCOME_LABEL));
+            client.send(new MessageText(HELP), msg.from);
         } catch (Exception e) {
             Logger.error("onNewConversation: %s %s", client.getId(), e);
         }
@@ -90,7 +112,7 @@ public class MessageHandler extends MessageHandlerBase {
             try {
                 Logger.info("onMemberJoin: %s, bot: %s, user: %s", msg.type, botId, memberId);
 
-                client.sendDirectText(WELCOME_LABEL, memberId);
+                client.send(new MessageText(WELCOME_LABEL), memberId);
                 //collector.sendPDF(memberId, "file:/opt");  //todo fix this
             } catch (Exception e) {
                 Logger.error("onMemberJoin: %s %s", botId, e);
@@ -156,9 +178,10 @@ public class MessageHandler extends MessageHandlerBase {
                 return;
 
             persist(convId, userId, botId, messageId, type, msg);
+
+            kibana(type, msg, client);
         } catch (Exception e) {
-            e.printStackTrace();
-            Logger.error("OnText: %s ex: %s", client.getId(), e);
+            Logger.exception(e, "OnText: %s", client.getId());
         }
     }
 
@@ -200,42 +223,42 @@ public class MessageHandler extends MessageHandlerBase {
     }
 
     @Override
-    public void onImage(WireClient client, ImageMessage msg) {
+    public void onAssetData(WireClient client, RemoteMessage msg) {
         UUID convId = client.getConversationId();
         UUID messageId = msg.getMessageId();
         UUID botId = client.getId();
         UUID userId = msg.getUserId();
-        String type = "conversation.otr-message-add.new-image";
+        String type = "conversation.otr-message-add.asset-data";
 
         try {
             persist(convId, userId, botId, messageId, type, msg);
         } catch (Exception e) {
-            Logger.error("onImage: %s %s %s", botId, messageId, e);
+            Logger.error("onAssetData: %s %s %s", botId, messageId, e);
         }
     }
 
     @Override
-    public void onVideo(WireClient client, VideoMessage msg) {
-        UUID convId = client.getConversationId();
-        UUID messageId = msg.getMessageId();
-        UUID botId = client.getId();
-        UUID userId = msg.getUserId();
-        String type = "conversation.otr-message-add.new-video";
-
-        try {
-            persist(convId, userId, botId, messageId, type, msg);
-        } catch (Exception e) {
-            Logger.error("onVideo: %s %s %s", botId, messageId, e);
-        }
-    }
-
-    @Override
-    public void onVideoPreview(WireClient client, ImageMessage msg) {
+    public void onFilePreview(WireClient client, FilePreviewMessage msg) {
         UUID convId = client.getConversationId();
         UUID messageId = UUID.randomUUID();
         UUID botId = client.getId();
         UUID userId = msg.getUserId();
-        String type = "conversation.otr-message-add.new-preview";
+        String type = "conversation.otr-message-add.file-preview";
+
+        try {
+            persist(convId, userId, botId, messageId, type, msg);
+        } catch (Exception e) {
+            Logger.exception(e, "onFilePreview: %s %s", botId, messageId);
+        }
+    }
+
+    @Override
+    public void onVideoPreview(WireClient client, VideoPreviewMessage msg) {
+        UUID convId = client.getConversationId();
+        UUID messageId = UUID.randomUUID();
+        UUID botId = client.getId();
+        UUID userId = msg.getUserId();
+        String type = "conversation.otr-message-add.video-preview";
 
         try {
             persist(convId, userId, botId, messageId, type, msg);
@@ -244,32 +267,33 @@ public class MessageHandler extends MessageHandlerBase {
         }
     }
 
+    @Override
+    public void onPhotoPreview(WireClient client, PhotoPreviewMessage msg) {
+        UUID convId = client.getConversationId();
+        UUID messageId = UUID.randomUUID();
+        UUID botId = client.getId();
+        UUID userId = msg.getUserId();
+        String type = "conversation.otr-message-add.image-preview";
+
+        try {
+            persist(convId, userId, botId, messageId, type, msg);
+        } catch (Exception e) {
+            Logger.exception(e, "onPhotoPreview: %s %s", botId, messageId);
+        }
+    }
+
+    @Override
     public void onLinkPreview(WireClient client, LinkPreviewMessage msg) {
         UUID convId = client.getConversationId();
         UUID messageId = msg.getMessageId();
         UUID botId = client.getId();
         UUID userId = msg.getUserId();
-        String type = "conversation.otr-message-add.new-link";
+        String type = "conversation.otr-message-add.link-preview";
 
         try {
             persist(convId, userId, botId, messageId, type, msg);
         } catch (Exception e) {
             Logger.error("onLinkPreview: %s %s %s", botId, messageId, e);
-        }
-    }
-
-    @Override
-    public void onAttachment(WireClient client, AttachmentMessage msg) {
-        UUID convId = client.getConversationId();
-        UUID botId = client.getId();
-        UUID messageId = msg.getMessageId();
-        UUID userId = msg.getUserId();
-        String type = "conversation.otr-message-add.new-attachment";
-
-        try {
-            persist(convId, userId, botId, messageId, type, msg);
-        } catch (Exception e) {
-            Logger.error("onAttachment: %s %s %s", botId, messageId, e);
         }
     }
 
@@ -315,7 +339,7 @@ public class MessageHandler extends MessageHandlerBase {
         try {
             if (null != channelsDAO.contains(convId)) {
                 List<Event> events = eventsDAO.listAllAsc(convId);
-                String filename = String.format("html/%s.html", convId);
+                String filename = getConversationPath(convId);
 
                 File file = eventProcessor.saveHtml(client, events, filename, false);
                 assert file.exists();
@@ -326,44 +350,103 @@ public class MessageHandler extends MessageHandlerBase {
     }
 
     private boolean command(WireClient client, UUID userId, UUID botId, UUID convId, String cmd) throws Exception {
-//        if (!state.getState().origin.id.equals(userId))
-//            return false;
+        // Only owner of the bot can run commands
+        NewBot state = storageFactory.create(botId).getState();
+        if (!Objects.equals(state.origin.id, userId))
+            return false;
 
         switch (cmd) {
             case "/help": {
-                client.sendDirectText(HELP, userId);
+                client.send(new MessageText(HELP), userId);
                 return true;
             }
             case "/pdf": {
-                client.sendDirectText("Generating PDF...", userId);
-                String filename = String.format("html/%s.html", convId);
+                client.send(new MessageText("Generating PDF..."), userId);
+                String filename = getConversationPath(convId);
                 List<Event> events = eventsDAO.listAllAsc(convId);
 
                 File file = eventProcessor.saveHtml(client, events, filename, true);
                 String html = Util.readFile(file);
 
                 String convName = client.getConversation().name;
-                String pdfFilename = String.format("html/%s.pdf", URLEncoder.encode(convName, "UTF-8"));
-                File pdfFile = PdfGenerator.save(pdfFilename, html, "file:/opt");
-                client.sendDirectFile(pdfFile, "application/pdf", userId);
+                if(convName == null){
+                    convName = "Recording";
+                }
+
+                String pdfFilename = String.format("html/%s.pdf", URLEncoder.encode(convName, StandardCharsets.UTF_8));
+                String baseUrl = "file:/opt/recording";
+                File pdfFile = PdfGenerator.save(pdfFilename, html, baseUrl);
+
+                // Post the Preview
+                UUID messageId = UUID.randomUUID();
+                String mimeType = "application/pdf";
+                client.send(new FileAssetPreview(pdfFile.getName(), mimeType, pdfFile.length(), messageId), userId);
+
+                FileAsset fileAsset = new FileAsset(pdfFile, mimeType, messageId);
+
+                // Upload Asset
+                AssetKey assetKey = client.uploadAsset(fileAsset);
+                fileAsset.setAssetKey(assetKey.id);
+                fileAsset.setAssetToken(assetKey.token);
+                fileAsset.setDomain(assetKey.domain);
+
+                Logger.info("Asset: key: %s, token: %s, domain: %s",
+                        fileAsset.getAssetKey(),
+                        fileAsset.getAssetToken(),
+                        fileAsset.getDomain());
+
+                // Post Asset
+                client.send(fileAsset, userId);
                 return true;
             }
             case "/public": {
                 channelsDAO.insert(convId, botId);
-                String text = String.format("https://recording.services.wire.com/channel/%s.html", convId);
-                client.sendText(text, userId);
+                String key = Helper.key(convId.toString(), config.salt);
+                String text = String.format("%s/channel/%s.html", config.url, key);
+                client.send(new MessageText(text), userId);
                 return true;
             }
             case "/private": {
                 channelsDAO.delete(convId);
-                String filename = String.format("html/%s.html", convId);
-                boolean delete = new File(filename).delete();
-                String txt = String.format("%s deleted: %s", filename, delete);
-                client.sendDirectText(txt, userId);
+
+                // Delete downloaded assets
+                File assetDir = getAssetDir(convId);
+                deleteDir(assetDir);
+
+                // Delete the html file
+                String filename = getConversationPath(convId);
+                File htmlFile = new File(filename);
+                boolean delete = htmlFile.delete();
+
+                String txt = String.format("%s deleted: %s", htmlFile.getPath(), delete);
+                client.send(new MessageText(txt), userId);
                 return true;
             }
         }
         return false;
+    }
+
+    private void deleteDir(File assetDir) {
+        File[] files = assetDir.listFiles();
+        if (files == null)
+            return;
+
+        for (File f : files) {
+            if (f.isFile()) {
+                boolean delete = f.delete();
+                Logger.info("Deleted file: %s %s", f.getAbsolutePath(), delete);
+            }
+        }
+    }
+
+    private File getAssetDir(UUID convId) throws NoSuchAlgorithmException {
+        String key = Helper.key(convId.toString(), config.salt);
+        return new File(String.format("assets/%s", key));
+    }
+
+    private String getConversationPath(UUID convId) throws NoSuchAlgorithmException {
+        String key = Helper.key(convId.toString(), config.salt);
+        return String.format("html/%s.html", key);
     }
 
     private void persist(UUID convId, UUID senderId, UUID userId, UUID msgId, String type, Object msg)
@@ -389,5 +472,29 @@ public class MessageHandler extends MessageHandlerBase {
             Logger.error(error);
             throw new RuntimeException(error);
         }
+    }
+
+    void kibana(String type, TextMessage msg, WireClient client) throws IOException, HttpException, ParseException {
+        Log.Kibana kibana = new Log.Kibana();
+        kibana.id = msg.getEventId();
+        kibana.type = type;
+        kibana.messageID = msg.getMessageId();
+        kibana.conversationID = msg.getConversationId();
+        kibana.from = msg.getUserId();
+        kibana.sent = date(msg.getTime());
+        kibana.text = msg.getText();
+
+        kibana.sender = client.getUser(msg.getUserId()).handle;
+
+        Conversation conversation = client.getConversation();
+        kibana.conversationName = conversation.name;
+
+        for (Member m : conversation.members) {
+            kibana.participants.add(client.getUser(m.id).handle);
+        }
+
+        Log log = new Log();
+        log.securehold = kibana;
+        System.out.println(mapper.writeValueAsString(log));
     }
 }

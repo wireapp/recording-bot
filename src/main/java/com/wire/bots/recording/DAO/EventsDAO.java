@@ -1,10 +1,10 @@
 package com.wire.bots.recording.DAO;
 
 import com.wire.bots.recording.model.Event;
-import org.skife.jdbi.v2.sqlobject.Bind;
-import org.skife.jdbi.v2.sqlobject.SqlQuery;
-import org.skife.jdbi.v2.sqlobject.SqlUpdate;
-import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
+import org.jdbi.v3.sqlobject.config.RegisterColumnMapper;
+import org.jdbi.v3.sqlobject.customizer.Bind;
+import org.jdbi.v3.sqlobject.statement.SqlQuery;
+import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 
 import java.util.List;
 import java.util.UUID;
@@ -19,18 +19,18 @@ public interface EventsDAO {
                @Bind("payload") String payload);
 
     @SqlQuery("SELECT * FROM Events WHERE messageId = :messageId")
-    @RegisterMapper(EventsResultSetMapper.class)
+    @RegisterColumnMapper(EventsResultSetMapper.class)
     Event get(@Bind("messageId") UUID messageId);
 
     @SqlUpdate("UPDATE Events SET payload = :payload, type = :type WHERE messageId = :messageId")
     int update(@Bind("messageId") UUID messageId, @Bind("type") String type, @Bind("payload") String payload);
 
     @SqlQuery("SELECT * FROM Events WHERE conversationId = :conversationId ORDER BY time ASC")
-    @RegisterMapper(EventsResultSetMapper.class)
+    @RegisterColumnMapper(EventsResultSetMapper.class)
     List<Event> listAllAsc(@Bind("conversationId") UUID conversationId);
 
     @SqlQuery("SELECT DISTINCT conversationId AS UUID FROM Events")
-    @RegisterMapper(UUIDResultSetMapper.class)
+    @RegisterColumnMapper(UUIDResultSetMapper.class)
     List<UUID> listConversations();
 
     @SqlUpdate("DELETE FROM Events WHERE messageId = :messageId")

@@ -1,0 +1,70 @@
+version: '3.8'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - release_version=docker-compose
+    image: recordingbot
+    ports:
+      - 8080:8080
+      - 8081:8081
+    environment:
+      # put here the token used for testing
+      - SERVICE_TOKEN=some-service-token-from-BE
+#      - WIRE_API_HOST=
+      - PUBLIC_URL=http://localhost:8080
+      # local database
+      - DB_URL=jdbc:postgresql://db:5432/recording
+      - DB_USER=recording
+      - DB_PASSWORD=recording
+      - APPENDER_TYPE=json-console
+    depends_on:
+      - db
+      - elasticsearch
+      - kibana
+      - filebeat
+
+  db:
+    image: postgres:13
+    # just for local development
+    environment:
+      - POSTGRES_USER=recording
+      - POSTGRES_PASSWORD=recording
+      - POSTGRES_DB=recording
+    ports:
+      - 5432:5432
+    volumes:
+      - recording-db:/var/lib/postgresql/data/
+
+  elasticsearch:
+    container_name: elasticsearch
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.11.0
+    environment:
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - "discovery.type=single-node"
+    ports:
+      - 9200:9200
+  
+  kibana:
+    container_name: kb-container
+    image: docker.elastic.co/kibana/kibana:7.11.0
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    ports:
+      - 5601:5601
+
+  filebeat:
+    image: "docker.elastic.co/beats/filebeat:7.2.0"
+    user: root
+    volumes:
+      - ./filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+
+volumes:
+  recording-db:

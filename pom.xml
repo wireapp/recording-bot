@@ -6,47 +6,81 @@
 
     <artifactId>recording-bot</artifactId>
     <groupId>com.wire.bots</groupId>
-    <version>0.3.0</version>
+    <version>0.3.2</version>
 
-    <repositories>
-        <repository>
-            <id>lithium</id>
-            <url>https://packagecloud.io/dkovacevic/lithium/maven2</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-        </repository>
-    </repositories>
+    <name>Recording Bot</name>
+    <description>Recording Bot Service For Wire</description>
+    <url>https://wire.com/</url>
+
+    <licenses>
+        <license>
+            <name>GNU General Public License v3.0</name>
+            <url>https://www.gnu.org/licenses/gpl-3.0.en.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
 
     <properties>
-        <openhtml.version>1.0.2</openhtml.version>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <dropwizard.version>2.1.4</dropwizard.version>
+        <lithium.version>3.4.6</lithium.version>
+        <openhtml.version>1.0.10</openhtml.version>
+        <prometheus.version>0.16.0</prometheus.version>
+        <commonmark.version>0.17.0</commonmark.version>
+        <spullara.version>0.9.10</spullara.version>
+        <zip4j.version>2.11.2</zip4j.version>
+        <junit.version>5.9.0</junit.version>
+
+        <maven.test.skip>true</maven.test.skip>
     </properties>
 
     <dependencies>
         <dependency>
-            <groupId>com.wire.bots</groupId>
+            <groupId>com.wire</groupId>
             <artifactId>lithium</artifactId>
-            <version>2.36.5</version>
+            <version>${lithium.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.dropwizard</groupId>
+            <artifactId>dropwizard-testing</artifactId>
+            <version>${dropwizard.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.github.spullara.mustache.java</groupId>
             <artifactId>compiler</artifactId>
-            <version>0.9.5</version>
+            <version>${spullara.version}</version>
         </dependency>
         <dependency>
             <groupId>com.atlassian.commonmark</groupId>
             <artifactId>commonmark</artifactId>
-            <version>0.12.1</version>
+            <version>${commonmark.version}</version>
         </dependency>
         <dependency>
             <groupId>com.atlassian.commonmark</groupId>
             <artifactId>commonmark-ext-autolink</artifactId>
-            <version>0.12.1</version>
+            <version>${commonmark.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.13.1</version>
+            <version>4.13.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -67,7 +101,7 @@
         <dependency>
             <groupId>net.lingala.zip4j</groupId>
             <artifactId>zip4j</artifactId>
-            <version>2.9.1</version>
+            <version>${zip4j.version}</version>
         </dependency>
     </dependencies>
     <build>
@@ -75,16 +109,16 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.0</version>
+                <version>3.8.1</version>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <source>11</source>
+                    <target>11</target>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>2.3.2</version>
+                <version>3.2.0</version>
                 <configuration>
                     <forceCreation>true</forceCreation>
                 </configuration>
@@ -92,7 +126,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>2.4.3</version>
+                <version>3.2.4</version>
                 <configuration>
                     <finalName>recording</finalName>
                     <createDependencyReducedPom>false</createDependencyReducedPom>
@@ -128,4 +162,5 @@
             </plugin>
         </plugins>
     </build>
+
 </project>

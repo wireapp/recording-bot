@@ -3,9 +3,9 @@ package com.wire.bots.recording;
 import com.wire.bots.recording.utils.Collector;
 import com.wire.bots.recording.utils.PdfGenerator;
 import com.wire.bots.recording.utils.TestCache;
-import com.wire.bots.sdk.models.*;
-import com.wire.bots.sdk.tools.Logger;
-import com.wire.bots.sdk.tools.Util;
+import com.wire.xenon.models.*;
+import com.wire.xenon.tools.Logger;
+import com.wire.xenon.tools.Util;
 import org.junit.Test;
 
 import java.io.File;
@@ -18,70 +18,51 @@ public class ConversationTemplateTest {
     private static final String SRC_TEST_OUT = "src/test/resources";
 
     private static TextMessage txt(UUID userId, String time, String text) {
-        TextMessage ret = new TextMessage(UUID.randomUUID(), UUID.randomUUID(), "", userId);
+        TextMessage ret = new TextMessage(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), "", userId, time);
         ret.setText(text);
-        ret.setTime(time);
         return ret;
     }
 
     private static ReactionMessage like(UUID userId, String emoji, String time, UUID msgId) {
-        ReactionMessage ret = new ReactionMessage(UUID.randomUUID(), UUID.randomUUID(), "", userId);
+        ReactionMessage ret = new ReactionMessage(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), "", userId, time);
         ret.setReactionMessageId(msgId);
         ret.setEmoji(emoji);
-        ret.setTime(time);
         return ret;
     }
 
     private static TextMessage quote(UUID userId, String text, String time, UUID msgId) {
-        TextMessage ret = new TextMessage(UUID.randomUUID(), UUID.randomUUID(), "", userId);
+        TextMessage ret = new TextMessage(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), "", userId, time);
         ret.setQuotedMessageId(msgId);
         ret.setText(text);
-        ret.setTime(time);
         return ret;
     }
 
     private static EditedTextMessage edit(UUID userId, String text, String time) {
-        EditedTextMessage ret = new EditedTextMessage(UUID.randomUUID(), UUID.randomUUID(), "", userId);
+        EditedTextMessage ret = new EditedTextMessage(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), "", userId, time);
         ret.setText(text);
-        ret.setTime(time);
         return ret;
     }
 
-    private static ImageMessage img(UUID userId, String time, String key, String mimeType) {
-        ImageMessage ret = new ImageMessage(UUID.randomUUID(), UUID.randomUUID(), "", userId);
-        ret.setAssetKey(key);
-        ret.setMimeType(mimeType);
-        ret.setTime(time);
+    private static RemoteMessage img(UUID userId, String time, String key, String mimeType) {
+        RemoteMessage ret = new RemoteMessage(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), "", userId, time,
+                key, "", null,null);
         return ret;
     }
 
     private static VideoMessage vid(UUID userId, String time, String key, String mimeType) {
-        VideoMessage ret = new VideoMessage(UUID.randomUUID(), UUID.randomUUID(), "", userId);
+        VideoMessage ret = new VideoMessage(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), "", userId, time);
         ret.setAssetKey(key);
         ret.setMimeType(mimeType);
-        ret.setTime(time);
         ret.setHeight(568);
         ret.setWidth(320);
         return ret;
     }
 
     private static AttachmentMessage attachment(UUID userId, String time, String key, String name, String mimeType) {
-        AttachmentMessage ret = new AttachmentMessage(UUID.randomUUID(), UUID.randomUUID(), "", userId);
+        AttachmentMessage ret = new AttachmentMessage(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), "", userId, time);
         ret.setAssetKey(key);
         ret.setMimeType(mimeType);
-        ret.setTime(time);
         ret.setName(name);
-        return ret;
-    }
-
-    private static LinkPreviewMessage link(UUID userId, String time, String text, String title, String url, String preview) {
-        LinkPreviewMessage ret = new LinkPreviewMessage(UUID.randomUUID(), UUID.randomUUID(), "", userId);
-        ret.setTime(time);
-        ret.setTitle(title);
-        ret.setText(text);
-        ret.setUrl(url);
-        ret.setAssetKey(preview);
-        ret.setMimeType("image/png");
         return ret;
     }
 
@@ -135,15 +116,15 @@ public class ConversationTemplateTest {
         collector.addSystem("**Dejo** deleted something", friday2, "conversation.otr-message-add.delete-text", UUID.randomUUID());
         collector.add(txt(lipis, saturday, "8"));
         collector.add(quote(dejan, "This was a quote", saturday, seven.getMessageId()));
-        collector.add(img(lipis, saturday, "ognjiste2", "image/png"));
-        collector.add(img(lipis, saturday, "small", "image/png"));
+        collector.add(img(lipis, saturday, "Wire 2022-02-27 at 2_15 PM", "image/png"));
+        //collector.add(img(lipis, saturday, "small", "image/png"));
         collector.add(txt(dejan, saturday, "9"));
         collector.add(txt(dejan, saturday, "10"));
         collector.add(txt(lipis, saturday, "```This is some cool Java code here```"));
         collector.add(txt(dejan, saturday, "12"));
         collector.add(txt(lipis, saturday, "13"));
-        collector.add(img(dejan, saturday, "ognjiste", "image/png"));
-        collector.add(attachment(lipis, saturday, "Wire+Security+Whitepaper", "Wire Security Paper.pdf", "pdf"));
+        //collector.add(img(dejan, saturday, "ognjiste", "image/png"));
+        //collector.add(attachment(lipis, saturday, "Wire+Security+Whitepaper", "Wire Security Paper.pdf", "pdf"));
         collector.add(txt(lipis, saturday, "15"));
         collector.add(txt(dejan, saturday, "Lorem ipsum **dolor** sit amet, consectetur adipiscing elit, sed " +
                 "do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam," +
@@ -159,17 +140,11 @@ public class ConversationTemplateTest {
                 " laborum."));
         collector.add(txt(dejan, saturday, "This is some url [google](https://google.com)"));
         collector.add(txt(dejan, saturday, "https://wire.com"));
-        collector.addLink(link(dejan,
-                saturday,
-                "Yo, check this link preview: https://wire.com. Totally without bugs!",
-                "The most secure collaboration platform · Wire",
-                "wire.com",
-                "logo"));
         collector.add(txt(dejan, saturday, "This is some url https://google.com and some text"));
         collector.add(txt(dejan, saturday, "These two urls https://google.com https://wire.com"));
         collector.addSystem("**Dejo** removed **Lipis**", saturday2, "conversation.member-leave", UUID.randomUUID());
         collector.add(txt(dejan, saturday, "https://www.youtube.com/watch?v=rlR4PJn8b8I"));
-        collector.add(vid(dejan, saturday, "panormos", "video/mp4"));
+       // collector.add(vid(dejan, saturday, "panormos", "video/mp4"));
 
         Collector.Conversation conversation = collector.getConversation();
         File htmlFile = collector.executeFile(getFilename(conversation.getTitle(), "html"));

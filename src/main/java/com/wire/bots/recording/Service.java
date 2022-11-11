@@ -21,8 +21,9 @@ import com.wire.bots.recording.DAO.ChannelsDAO;
 import com.wire.bots.recording.DAO.EventsDAO;
 import com.wire.bots.recording.model.Config;
 import com.wire.bots.recording.utils.ImagesBundle;
-import com.wire.bots.sdk.MessageHandlerBase;
-import com.wire.bots.sdk.Server;
+
+import com.wire.lithium.Server;
+import com.wire.xenon.MessageHandlerBase;
 import io.dropwizard.Application;
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.setup.Bootstrap;
@@ -48,7 +49,7 @@ public class Service extends Server<Config> {
         bootstrap.addBundle(new AssetsBundle("/scripts", "/scripts", "index.htm", "scripts"));
         bootstrap.addBundle(new ImagesBundle(workingDir + "/avatars", "/avatars", "avatars"));
         bootstrap.addBundle(new ImagesBundle(workingDir + "/html", "/channel", "channels"));
-        bootstrap.addBundle(new ImagesBundle(workingDir + "/assets", "/assets", "assets"));
+        bootstrap.addBundle(new ImagesBundle(workingDir + "/assets", "/assets", "assets", "application/octet-stream"));
 
         Application<Config> application = bootstrap.getApplication();
         instance = (Service) application;
@@ -59,7 +60,7 @@ public class Service extends Server<Config> {
         final EventsDAO eventsDAO = jdbi.onDemand(EventsDAO.class);
         final ChannelsDAO channelsDAO = jdbi.onDemand(ChannelsDAO.class);
 
-        messageHandler = new MessageHandler(eventsDAO, channelsDAO);
+        messageHandler = new MessageHandler(eventsDAO, channelsDAO, getStorageFactory());
         return messageHandler;
     }
 
