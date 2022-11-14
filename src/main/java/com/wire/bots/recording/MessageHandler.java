@@ -187,40 +187,56 @@ public class MessageHandler extends MessageHandlerBase {
 
     @Override
     public void onEditText(WireClient client, EditedTextMessage msg) {
-        UUID botId = client.getId();
-        UUID convId = client.getConversationId();
         UUID userId = msg.getUserId();
+        UUID botId = client.getId();
         UUID messageId = msg.getMessageId();
-        UUID replacingMessageId = msg.getReplacingMessageId();
-        String type = "conversation.otr-message-add.edit-text";
+        UUID convId = client.getConversationId();
+        String type = "conversation.otr-message-add.new-text";
 
         try {
-            String payload = mapper.writeValueAsString(msg);
-            int update = eventsDAO.update(replacingMessageId, type, payload);
-            Logger.info("%s: conv: %s, %s -> %s, msg: %s, replacingMsgId: %s, update: %d",
-                    type,
-                    convId,
-                    userId,
-                    botId,
-                    messageId,
-                    replacingMessageId,
-                    update);
+            persist(convId, userId, botId, messageId, type, msg);
+
+            kibana(type, msg, client);
         } catch (Exception e) {
-            Logger.error("onEditText: %s msg: %s, replacingMsgId: %s, %s", botId, messageId, replacingMessageId, e);
+            Logger.exception(e, "onEditText: %s", client.getId());
         }
     }
 
-    @Override
-    public void onDelete(WireClient client, DeletedTextMessage msg) {
-        UUID botId = client.getId();
-        UUID messageId = msg.getMessageId();
-        UUID convId = client.getConversationId();
-        UUID userId = msg.getUserId();
-        String type = "conversation.otr-message-add.delete-text";
+//    public void onEditText(WireClient client, EditedTextMessage msg) {
+//        UUID botId = client.getId();
+//        UUID convId = client.getConversationId();
+//        UUID userId = msg.getUserId();
+//        UUID messageId = msg.getMessageId();
+//        UUID replacingMessageId = msg.getReplacingMessageId();
+//        String type = "conversation.otr-message-add.edit-text";
+//
+//        try {
+//            String payload = mapper.writeValueAsString(msg);
+//            int update = eventsDAO.update(replacingMessageId, type, payload);
+//            Logger.info("%s: conv: %s, %s -> %s, msg: %s, replacingMsgId: %s, update: %d",
+//                    type,
+//                    convId,
+//                    userId,
+//                    botId,
+//                    messageId,
+//                    replacingMessageId,
+//                    update);
+//        } catch (Exception e) {
+//            Logger.error("onEditText: %s msg: %s, replacingMsgId: %s, %s", botId, messageId, replacingMessageId, e);
+//        }
+//    }
 
-        persist(convId, userId, botId, messageId, type, msg);
-        eventsDAO.delete(msg.getDeletedMessageId());
-    }
+//    @Override
+//    public void onDelete(WireClient client, DeletedTextMessage msg) {
+//        UUID botId = client.getId();
+//        UUID messageId = msg.getMessageId();
+//        UUID convId = client.getConversationId();
+//        UUID userId = msg.getUserId();
+//        String type = "conversation.otr-message-add.delete-text";
+//
+//        persist(convId, userId, botId, messageId, type, msg);
+//        eventsDAO.delete(msg.getDeletedMessageId());
+//    }
 
     @Override
     public void onAssetData(WireClient client, RemoteMessage msg) {
@@ -369,7 +385,7 @@ public class MessageHandler extends MessageHandlerBase {
                 String html = Util.readFile(file);
 
                 String convName = client.getConversation().name;
-                if(convName == null){
+                if (convName == null) {
                     convName = "Recording";
                 }
 
