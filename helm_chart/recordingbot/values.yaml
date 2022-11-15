@@ -5,5 +5,19 @@ app:
   serviceToken: # Provide the service recording bot service token.
   publicURL: # Link to the subdomain pointing to recordingbot.
   dbURL: jdbc:postgresql://data-postgres:5432/recording # Link to your Postgres server.
-  dbUser: # Provide your Postgres DB username.
-  dbPassword: # Provide your Postgres DB password.
+  dbUser: recording # Provide your Postgres DB username.
+  dbPassword: recording # Provide your Postgres DB password.
+
+postgresql:
+  enabled: false
+  fullnameOverride: data-postgres
+  auth:
+    postgresPassword: recording
+    username: recording
+    password: recording
+    database: recording
+  primary:
+    persistence:
+      existingClaim: postgresql-pv-claim
+  volumePermissions:
+    enabled: true
