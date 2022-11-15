@@ -191,7 +191,7 @@ public class MessageHandler extends MessageHandlerBase {
         UUID botId = client.getId();
         UUID messageId = msg.getMessageId();
         UUID convId = client.getConversationId();
-        String type = "conversation.otr-message-add.new-text";
+        String type = "conversation.otr-message-add.edit-text";
 
         try {
             persist(convId, userId, botId, messageId, type, msg);

@@ -63,6 +63,13 @@ class EventProcessor {
                     collector.add(message);
                 }
                 break;
+                case "conversation.otr-message-add.edit-text": {
+                    EditedTextMessage message = mapper.readValue(event.payload, EditedTextMessage.class);
+                    message.setText(message.getText());
+                    message.setQuotedMessageId(message.getReplacingMessageId());
+                    collector.addEdit(message);
+                }
+                break;
                 case "conversation.otr-message-add.asset-data": {
                     RemoteMessage message = mapper.readValue(event.payload, RemoteMessage.class);
                     collector.add(message);
@@ -111,12 +118,6 @@ class EventProcessor {
                             collector.getUserName(msg.from),
                             "stopped recording");
                     collector.addSystem(format, msg.time, event.type, msg.id);
-                }
-                break;
-                case "conversation.otr-message-add.edit-text": {
-                    EditedTextMessage message = mapper.readValue(event.payload, EditedTextMessage.class);
-                    message.setText(message.getText());
-                    collector.addEdit(message);
                 }
                 break;
                 case "conversation.otr-message-add.delete-text": {
