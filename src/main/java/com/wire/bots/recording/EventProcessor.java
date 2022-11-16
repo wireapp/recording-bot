@@ -91,8 +91,8 @@ class EventProcessor {
                 }
                 break;
                 case "conversation.otr-message-add.video-preview": {
-                    VideoMessage message = mapper.readValue(event.payload, VideoMessage.class);
-                    //collector.add(message);
+                    VideoPreviewMessage message = mapper.readValue(event.payload, VideoPreviewMessage.class);
+                    collector.add(message);
                 }
                 break;
                 case "conversation.member-join": {

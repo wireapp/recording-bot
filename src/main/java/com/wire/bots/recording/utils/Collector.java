@@ -129,6 +129,10 @@ public class Collector {
         addSystem(message.getName(), message.getTime(), "file-preview", message.getMessageId());
     }
 
+    public void add(VideoPreviewMessage message) throws ParseException {
+        addSystem(message.getName(), message.getTime(), "file-preview", message.getMessageId());
+    }
+
     public void add(RemoteMessage event, VideoPreviewMessage preview) throws Exception {
         Message message = new Message();
         message.id = event.getMessageId();
