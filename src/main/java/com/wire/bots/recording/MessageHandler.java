@@ -186,6 +186,11 @@ public class MessageHandler extends MessageHandlerBase {
     }
 
     @Override
+    public void onText(WireClient client, EphemeralTextMessage msg) {
+        onText(client, (TextMessage) msg);
+    }
+
+    @Override
     public void onEditText(WireClient client, EditedTextMessage msg) {
         UUID userId = msg.getUserId();
         UUID botId = client.getId();
@@ -195,36 +200,13 @@ public class MessageHandler extends MessageHandlerBase {
 
         try {
             persist(convId, userId, botId, messageId, type, msg);
-
+            // UUID replacingMessageId = msg.getReplacingMessageId();
+            // int update = eventsDAO.update(replacingMessageId, type, payload);
             kibana(type, msg, client);
         } catch (Exception e) {
             Logger.exception(e, "onEditText: %s", client.getId());
         }
     }
-
-//    public void onEditText(WireClient client, EditedTextMessage msg) {
-//        UUID botId = client.getId();
-//        UUID convId = client.getConversationId();
-//        UUID userId = msg.getUserId();
-//        UUID messageId = msg.getMessageId();
-//        UUID replacingMessageId = msg.getReplacingMessageId();
-//        String type = "conversation.otr-message-add.edit-text";
-//
-//        try {
-//            String payload = mapper.writeValueAsString(msg);
-//            int update = eventsDAO.update(replacingMessageId, type, payload);
-//            Logger.info("%s: conv: %s, %s -> %s, msg: %s, replacingMsgId: %s, update: %d",
-//                    type,
-//                    convId,
-//                    userId,
-//                    botId,
-//                    messageId,
-//                    replacingMessageId,
-//                    update);
-//        } catch (Exception e) {
-//            Logger.error("onEditText: %s msg: %s, replacingMsgId: %s, %s", botId, messageId, replacingMessageId, e);
-//        }
-//    }
 
     @Override
     public void onDelete(WireClient client, DeletedTextMessage msg) {

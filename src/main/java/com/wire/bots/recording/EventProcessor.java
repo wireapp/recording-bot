@@ -70,6 +70,11 @@ class EventProcessor {
                     collector.addEdit(message);
                 }
                 break;
+                case "conversation.otr-message-add.link-preview": {
+                    LinkPreviewMessage message = mapper.readValue(event.payload, LinkPreviewMessage.class);
+                    collector.addLink(message);
+                }
+                break;
                 case "conversation.otr-message-add.asset-data": {
                     RemoteMessage message = mapper.readValue(event.payload, RemoteMessage.class);
                     collector.add(message);
