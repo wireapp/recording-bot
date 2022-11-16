@@ -226,17 +226,17 @@ public class MessageHandler extends MessageHandlerBase {
 //        }
 //    }
 
-//    @Override
-//    public void onDelete(WireClient client, DeletedTextMessage msg) {
-//        UUID botId = client.getId();
-//        UUID messageId = msg.getMessageId();
-//        UUID convId = client.getConversationId();
-//        UUID userId = msg.getUserId();
-//        String type = "conversation.otr-message-add.delete-text";
-//
-//        persist(convId, userId, botId, messageId, type, msg);
-//        eventsDAO.delete(msg.getDeletedMessageId());
-//    }
+    @Override
+    public void onDelete(WireClient client, DeletedTextMessage msg) {
+        UUID botId = client.getId();
+        UUID messageId = msg.getMessageId();
+        UUID convId = client.getConversationId();
+        UUID userId = msg.getUserId();
+        String type = "conversation.otr-message-add.delete-text";
+
+        persist(convId, userId, botId, messageId, type, msg);
+        //eventsDAO.delete(msg.getDeletedMessageId());
+    }
 
     @Override
     public void onAssetData(WireClient client, RemoteMessage msg) {
