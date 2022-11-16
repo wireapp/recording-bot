@@ -13,7 +13,9 @@ COPY . ./
 RUN mvn -Dmaven.test.skip=true package
 
 # runtime stage
-FROM wirebot/runtime:1.2.0
+FROM wirebot/runtime AS runtime
+LABEL description="Wire Recording Bot"
+LABEL project="wire-bots:recording-bot"
 
 RUN mkdir /opt/recording
 RUN mkdir /opt/recording/assets
