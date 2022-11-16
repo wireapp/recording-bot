@@ -7,6 +7,7 @@ import com.wire.bots.recording.DAO.EventsDAO;
 import com.wire.bots.recording.model.Config;
 import com.wire.bots.recording.model.Event;
 import com.wire.bots.recording.model.Log;
+import com.wire.bots.recording.utils.Cache;
 import com.wire.bots.recording.utils.Helper;
 import com.wire.bots.recording.utils.PdfGenerator;
 import com.wire.lithium.ClientRepo;
@@ -200,8 +201,9 @@ public class MessageHandler extends MessageHandlerBase {
 
         try {
             persist(convId, userId, botId, messageId, type, msg);
-            // UUID replacingMessageId = msg.getReplacingMessageId();
-            // int update = eventsDAO.update(replacingMessageId, type, payload);
+            /* UUID replacingMessageId = msg.getReplacingMessageId();
+               int update = eventsDAO.update(replacingMessageId, type, payload);
+             */
             kibana(type, msg, client);
         } catch (Exception e) {
             Logger.exception(e, "onEditText: %s", client.getId());
@@ -320,7 +322,7 @@ public class MessageHandler extends MessageHandlerBase {
     @Override
     public void onUserUpdate(UUID id, UUID userId) {
         Logger.info("onUserUpdate: %s, userId: %s", id, userId);
-        eventProcessor.clearCache(userId);
+        Cache.removeUser(userId);
     }
 
     @Override
@@ -411,8 +413,6 @@ public class MessageHandler extends MessageHandlerBase {
                 File assetDir = getAssetDir(convId);
                 deleteDir(assetDir);
 
-                eventProcessor.clearAssetCache();
-
                 // Delete the html file
                 String filename = getConversationPath(convId);
                 File htmlFile = new File(filename);
@@ -434,6 +434,11 @@ public class MessageHandler extends MessageHandlerBase {
         for (File f : files) {
             if (f.isFile()) {
                 boolean delete = f.delete();
+                if (delete) {
+                    String filename = f.getName();
+                    String name = filename.split("\\.")[0];
+                    Cache.removeAsset(name);
+                }
                 Logger.info("Deleted file: %s %s", f.getAbsolutePath(), delete);
             }
         }

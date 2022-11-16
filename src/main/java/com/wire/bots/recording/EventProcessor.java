@@ -22,14 +22,6 @@ class EventProcessor {
     EventProcessor() {
     }
 
-    void clearCache(UUID userId) {
-        Cache.clear(userId);
-    }
-
-    void clearAssetCache() {
-        Cache.clearAssets();
-    }
-
     File saveHtml(WireClient client, List<Event> events, String filename, boolean withPreviews) throws IOException {
         Collector collector = new Collector(new Cache(client));
         for (Event event : events) {
