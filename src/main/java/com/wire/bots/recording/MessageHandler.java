@@ -411,6 +411,8 @@ public class MessageHandler extends MessageHandlerBase {
                 File assetDir = getAssetDir(convId);
                 deleteDir(assetDir);
 
+                eventProcessor.clearAssetCache();
+
                 // Delete the html file
                 String filename = getConversationPath(convId);
                 File htmlFile = new File(filename);

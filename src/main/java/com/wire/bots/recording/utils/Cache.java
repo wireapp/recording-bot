@@ -25,6 +25,10 @@ public class Cache {
         users.remove(userId);
     }
 
+    public static void clearAssets() {
+        assetsMap.clear(); //todo dont clear cash for all convs
+    }
+
     File getAssetFile(RemoteMessage message) throws NoSuchAlgorithmException {
         String salt = Service.instance.getConfig().salt;
         String assetKey = Helper.key(message.getAssetId(), salt);
