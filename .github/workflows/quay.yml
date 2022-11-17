@@ -1,4 +1,4 @@
-name: Quay Deployment
+name: quay.io image
 
 on:
   # manual dispatch
