@@ -268,6 +268,21 @@ public class MessageHandler extends MessageHandlerBase {
     }
 
     @Override
+    public void onAudioPreview(WireClient client, AudioPreviewMessage msg) {
+        UUID convId = client.getConversationId();
+        UUID messageId = UUID.randomUUID();
+        UUID botId = client.getId();
+        UUID userId = msg.getUserId();
+        String type = "conversation.otr-message-add.audio-preview";
+
+        try {
+            persist(convId, userId, botId, messageId, type, msg);
+        } catch (Exception e) {
+            Logger.error("onAudioPreview: %s %s %s", botId, messageId, e);
+        }
+    }
+
+    @Override
     public void onPhotoPreview(WireClient client, PhotoPreviewMessage msg) {
         UUID convId = client.getConversationId();
         UUID messageId = UUID.randomUUID();

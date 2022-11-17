@@ -83,11 +83,16 @@ class EventProcessor {
                 break;
                 case "conversation.otr-message-add.image-preview": {
                     PhotoPreviewMessage message = mapper.readValue(event.payload, PhotoPreviewMessage.class);
-                    //collector.add(message);
+                    collector.add(message);
                 }
                 break;
                 case "conversation.otr-message-add.video-preview": {
                     VideoPreviewMessage message = mapper.readValue(event.payload, VideoPreviewMessage.class);
+                    collector.add(message);
+                }
+                break;
+                case "conversation.otr-message-add.audio-preview": {
+                    AudioPreviewMessage message = mapper.readValue(event.payload, AudioPreviewMessage.class);
                     collector.add(message);
                 }
                 break;
