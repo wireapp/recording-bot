@@ -21,8 +21,12 @@ public class Cache {
         this.client = client;
     }
 
-    public static void clear(UUID userId) {
+    public static void removeUser(UUID userId) {
         users.remove(userId);
+    }
+
+    public static void removeAsset(String key) {
+        assetsMap.remove(key);
     }
 
     File getAssetFile(RemoteMessage message) throws NoSuchAlgorithmException {

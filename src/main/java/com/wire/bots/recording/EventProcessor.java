@@ -22,10 +22,6 @@ class EventProcessor {
     EventProcessor() {
     }
 
-    void clearCache(UUID userId) {
-        Cache.clear(userId);
-    }
-
     File saveHtml(WireClient client, List<Event> events, String filename, boolean withPreviews) throws IOException {
         Collector collector = new Collector(new Cache(client));
         for (Event event : events) {
@@ -63,6 +59,18 @@ class EventProcessor {
                     collector.add(message);
                 }
                 break;
+                case "conversation.otr-message-add.edit-text": {
+                    EditedTextMessage message = mapper.readValue(event.payload, EditedTextMessage.class);
+                    message.setText(message.getText());
+                    message.setQuotedMessageId(message.getReplacingMessageId());
+                    collector.addEdit(message);
+                }
+                break;
+                case "conversation.otr-message-add.link-preview": {
+                    LinkPreviewMessage message = mapper.readValue(event.payload, LinkPreviewMessage.class);
+                    collector.addLink(message);
+                }
+                break;
                 case "conversation.otr-message-add.asset-data": {
                     RemoteMessage message = mapper.readValue(event.payload, RemoteMessage.class);
                     collector.add(message);
@@ -75,12 +83,17 @@ class EventProcessor {
                 break;
                 case "conversation.otr-message-add.image-preview": {
                     PhotoPreviewMessage message = mapper.readValue(event.payload, PhotoPreviewMessage.class);
-                    //collector.add(message);
+                    collector.add(message);
                 }
                 break;
                 case "conversation.otr-message-add.video-preview": {
-                    VideoMessage message = mapper.readValue(event.payload, VideoMessage.class);
-                    //collector.add(message);
+                    VideoPreviewMessage message = mapper.readValue(event.payload, VideoPreviewMessage.class);
+                    collector.add(message);
+                }
+                break;
+                case "conversation.otr-message-add.audio-preview": {
+                    AudioPreviewMessage message = mapper.readValue(event.payload, AudioPreviewMessage.class);
+                    collector.add(message);
                 }
                 break;
                 case "conversation.member-join": {
@@ -111,12 +124,6 @@ class EventProcessor {
                             collector.getUserName(msg.from),
                             "stopped recording");
                     collector.addSystem(format, msg.time, event.type, msg.id);
-                }
-                break;
-                case "conversation.otr-message-add.edit-text": {
-                    EditedTextMessage message = mapper.readValue(event.payload, EditedTextMessage.class);
-                    message.setText(message.getText());
-                    collector.addEdit(message);
                 }
                 break;
                 case "conversation.otr-message-add.delete-text": {

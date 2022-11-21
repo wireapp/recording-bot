@@ -7,6 +7,7 @@ import com.wire.bots.recording.DAO.EventsDAO;
 import com.wire.bots.recording.model.Config;
 import com.wire.bots.recording.model.Event;
 import com.wire.bots.recording.model.Log;
+import com.wire.bots.recording.utils.Cache;
 import com.wire.bots.recording.utils.Helper;
 import com.wire.bots.recording.utils.PdfGenerator;
 import com.wire.lithium.ClientRepo;
@@ -186,27 +187,26 @@ public class MessageHandler extends MessageHandlerBase {
     }
 
     @Override
+    public void onText(WireClient client, EphemeralTextMessage msg) {
+        onText(client, (TextMessage) msg);
+    }
+
+    @Override
     public void onEditText(WireClient client, EditedTextMessage msg) {
-        UUID botId = client.getId();
-        UUID convId = client.getConversationId();
         UUID userId = msg.getUserId();
+        UUID botId = client.getId();
         UUID messageId = msg.getMessageId();
-        UUID replacingMessageId = msg.getReplacingMessageId();
+        UUID convId = client.getConversationId();
         String type = "conversation.otr-message-add.edit-text";
 
         try {
-            String payload = mapper.writeValueAsString(msg);
-            int update = eventsDAO.update(replacingMessageId, type, payload);
-            Logger.info("%s: conv: %s, %s -> %s, msg: %s, replacingMsgId: %s, update: %d",
-                    type,
-                    convId,
-                    userId,
-                    botId,
-                    messageId,
-                    replacingMessageId,
-                    update);
+            persist(convId, userId, botId, messageId, type, msg);
+            /* UUID replacingMessageId = msg.getReplacingMessageId();
+               int update = eventsDAO.update(replacingMessageId, type, payload);
+             */
+            kibana(type, msg, client);
         } catch (Exception e) {
-            Logger.error("onEditText: %s msg: %s, replacingMsgId: %s, %s", botId, messageId, replacingMessageId, e);
+            Logger.exception(e, "onEditText: %s", client.getId());
         }
     }
 
@@ -219,7 +219,7 @@ public class MessageHandler extends MessageHandlerBase {
         String type = "conversation.otr-message-add.delete-text";
 
         persist(convId, userId, botId, messageId, type, msg);
-        eventsDAO.delete(msg.getDeletedMessageId());
+        //eventsDAO.delete(msg.getDeletedMessageId());
     }
 
     @Override
@@ -264,6 +264,21 @@ public class MessageHandler extends MessageHandlerBase {
             persist(convId, userId, botId, messageId, type, msg);
         } catch (Exception e) {
             Logger.error("onVideoPreview: %s %s %s", botId, messageId, e);
+        }
+    }
+
+    @Override
+    public void onAudioPreview(WireClient client, AudioPreviewMessage msg) {
+        UUID convId = client.getConversationId();
+        UUID messageId = UUID.randomUUID();
+        UUID botId = client.getId();
+        UUID userId = msg.getUserId();
+        String type = "conversation.otr-message-add.audio-preview";
+
+        try {
+            persist(convId, userId, botId, messageId, type, msg);
+        } catch (Exception e) {
+            Logger.error("onAudioPreview: %s %s %s", botId, messageId, e);
         }
     }
 
@@ -322,7 +337,7 @@ public class MessageHandler extends MessageHandlerBase {
     @Override
     public void onUserUpdate(UUID id, UUID userId) {
         Logger.info("onUserUpdate: %s, userId: %s", id, userId);
-        eventProcessor.clearCache(userId);
+        Cache.removeUser(userId);
     }
 
     @Override
@@ -369,7 +384,7 @@ public class MessageHandler extends MessageHandlerBase {
                 String html = Util.readFile(file);
 
                 String convName = client.getConversation().name;
-                if(convName == null){
+                if (convName == null) {
                     convName = "Recording";
                 }
 
@@ -434,6 +449,11 @@ public class MessageHandler extends MessageHandlerBase {
         for (File f : files) {
             if (f.isFile()) {
                 boolean delete = f.delete();
+                if (delete) {
+                    String filename = f.getName();
+                    String name = filename.split("\\.")[0];
+                    Cache.removeAsset(name);
+                }
                 Logger.info("Deleted file: %s %s", f.getAbsolutePath(), delete);
             }
         }

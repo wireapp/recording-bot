@@ -125,7 +125,7 @@ public class Collector {
         append(sender, message, event.getTime());
     }
 
-    public void add(FilePreviewMessage message) throws ParseException {
+    public void add(OriginMessage message) throws ParseException {
         addSystem(message.getName(), message.getTime(), "file-preview", message.getMessageId());
     }
 
@@ -183,28 +183,28 @@ public class Collector {
         }
     }
 
-//    public void addLink(LinkPreviewMessage event) throws ParseException {
-//        Message message = new Message();
-//        message.id = event.getMessageId();
-//        message.timeStamp = event.getTime();
-//        message.text = Helper.markdown2Html(event.getText());
-//
-//        Link link = new Link();
-//        link.title = event.getTitle();
-//        link.summary = event.getSummary();
-//        link.url = event.getUrl();
-//
+    public void addLink(LinkPreviewMessage event) throws ParseException {
+        Message message = new Message();
+        message.id = event.getMessageId();
+        message.timeStamp = event.getTime();
+        message.text = Helper.markdown2Html(event.getText());
+
+        Link link = new Link();
+        link.title = event.getTitle();
+        link.summary = event.getSummary();
+        link.url = event.getUrl();
+
 //        File file = cache.getAssetFile(event);
 //        if (file.exists())
 //            link.preview = getFilename(file);
-//
-//        message.link = link;
-//
-//        Sender sender = sender(event.getUserId());
-//        sender.add(message);
-//
-//        append(sender, message, event.getTime());
-//    }
+
+        message.link = link;
+
+        Sender sender = sender(event.getUserId());
+        sender.add(message);
+
+        append(sender, message, event.getTime());
+    }
 
     /**
      * Adds new message with _name_ `system` and avatar based on _type_. If the last message has the same timestamp as
