@@ -26,8 +26,12 @@ import com.wire.lithium.Server;
 import com.wire.xenon.MessageHandlerBase;
 import io.dropwizard.Application;
 import io.dropwizard.assets.AssetsBundle;
+import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
+import io.dropwizard.configuration.SubstitutingSourceProvider;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import io.federecio.dropwizard.swagger.SwaggerBundle;
+import io.federecio.dropwizard.swagger.SwaggerBundleConfiguration;
 
 import java.util.concurrent.ExecutorService;
 
@@ -43,9 +47,11 @@ public class Service extends Server<Config> {
 
     @Override
     public void initialize(Bootstrap<Config> bootstrap) {
-        super.initialize(bootstrap);
         String workingDir = System.getProperty("user.dir");
 
+        bootstrap.setConfigurationSourceProvider(
+                new SubstitutingSourceProvider(bootstrap.getConfigurationSourceProvider(),
+                new EnvironmentVariableSubstitutor(false)));
         bootstrap.addBundle(new AssetsBundle("/scripts", "/scripts", "index.htm", "scripts"));
         bootstrap.addBundle(new ImagesBundle(workingDir + "/avatars", "/avatars", "avatars"));
         bootstrap.addBundle(new ImagesBundle(workingDir + "/html", "/channel", "channels"));
