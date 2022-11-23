@@ -74,6 +74,9 @@ public class MessageHandler extends MessageHandlerBase {
                         File file = eventProcessor.saveHtml(client, events, filename, false);
                         Logger.debug("warmed up: %s", file.getName());
                         Thread.sleep(2 * 1000);
+                    } catch (IOException e) {
+                        Logger.warning("warmup: %s %s.. removing the bot", convId, e);
+                        channelsDAO.delete(convId);
                     }
                 }
             } catch (Exception e) {

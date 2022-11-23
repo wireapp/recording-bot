@@ -126,7 +126,8 @@ public class Collector {
     }
 
     public void add(OriginMessage message) throws ParseException {
-        addSystem(message.getName(), message.getTime(), "file-preview", message.getMessageId());
+        String text = String.format("%s | %s", message.getName(), message.getMimeType());
+        addSystem(text, message.getTime(), "file-preview", message.getMessageId());
     }
 
     public void add(RemoteMessage event, VideoPreviewMessage preview) throws Exception {
