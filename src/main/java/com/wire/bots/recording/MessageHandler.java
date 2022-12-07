@@ -43,7 +43,8 @@ public class MessageHandler extends MessageHandlerBase {
     private static final String HELP = "Available commands:\n" +
             "`/pdf`     - receive previous messages in PDF format\n" +
             "`/public`  - publish this conversation\n" +
-            "`/private` - stop publishing this conversation";
+            "`/private` - stop publishing this conversation\n" +
+            "`/clear`   - clear the history";
 
     private final ChannelsDAO channelsDAO;
     private final StorageFactory storageFactory;

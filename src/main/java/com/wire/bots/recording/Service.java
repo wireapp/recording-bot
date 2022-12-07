@@ -73,7 +73,7 @@ public class Service extends Server<Config> {
 
     protected void onRun(Config config, Environment env) {
         CollectorRegistry.defaultRegistry.register(new DropwizardExports(env.metrics()));
-        environment.getApplicationContext().addServlet(MetricsServlet.class, "/metrics");
+        env.getApplicationContext().addServlet(MetricsServlet.class, "/metrics");
 
         ExecutorService warmup = env.lifecycle().executorService("warmup").build();
         warmup.submit(() -> messageHandler.warmup(getRepo()));
