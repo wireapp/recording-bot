@@ -29,4 +29,8 @@ public class Config extends Configuration {
     public String url;
     @NotNull
     public String salt;
+    public boolean kibana;
+
+    public boolean delete = true;
+    public boolean edit = true;
 }

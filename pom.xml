@@ -6,7 +6,7 @@
 
     <artifactId>recording-bot</artifactId>
     <groupId>com.wire.bots</groupId>
-    <version>0.3.2</version>
+    <version>0.3.3</version>
 
     <name>Recording Bot</name>
     <description>Recording Bot Service For Wire</description>
@@ -102,6 +102,21 @@
             <groupId>net.lingala.zip4j</groupId>
             <artifactId>zip4j</artifactId>
             <version>${zip4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.prometheus</groupId>
+            <artifactId>simpleclient</artifactId>
+            <version>${prometheus.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.prometheus</groupId>
+            <artifactId>simpleclient_dropwizard</artifactId>
+            <version>${prometheus.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.prometheus</groupId>
+            <artifactId>simpleclient_servlet</artifactId>
+            <version>${prometheus.version}</version>
         </dependency>
     </dependencies>
     <build>

@@ -20,6 +20,7 @@ services:
       - DB_USER=recording
       - DB_PASSWORD=recording
       - APPENDER_TYPE=json-console
+      - KIBANA=true
     depends_on:
       - db
       - elasticsearch

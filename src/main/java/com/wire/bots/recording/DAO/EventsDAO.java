@@ -35,4 +35,7 @@ public interface EventsDAO {
 
     @SqlUpdate("DELETE FROM Events WHERE messageId = :messageId")
     int delete(@Bind("messageId") UUID messageId);
+
+    @SqlUpdate("DELETE FROM Events WHERE conversationId = :conversationId")
+    int clear(@Bind("conversationId") UUID conversationId);
 }

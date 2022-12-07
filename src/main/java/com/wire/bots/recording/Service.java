@@ -30,10 +30,11 @@ import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
-import io.federecio.dropwizard.swagger.SwaggerBundle;
-import io.federecio.dropwizard.swagger.SwaggerBundleConfiguration;
-
 import java.util.concurrent.ExecutorService;
+
+import io.prometheus.client.CollectorRegistry;
+import io.prometheus.client.dropwizard.DropwizardExports;
+import io.prometheus.client.exporter.MetricsServlet;
 
 public class Service extends Server<Config> {
     public static Service instance;
@@ -71,6 +72,9 @@ public class Service extends Server<Config> {
     }
 
     protected void onRun(Config config, Environment env) {
+        CollectorRegistry.defaultRegistry.register(new DropwizardExports(env.metrics()));
+        env.getApplicationContext().addServlet(MetricsServlet.class, "/metrics");
+
         ExecutorService warmup = env.lifecycle().executorService("warmup").build();
         warmup.submit(() -> messageHandler.warmup(getRepo()));
     }
