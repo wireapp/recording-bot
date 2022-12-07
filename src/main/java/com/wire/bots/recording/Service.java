@@ -60,10 +60,6 @@ public class Service extends Server<Config> {
 
         Application<Config> application = bootstrap.getApplication();
         instance = (Service) application;
-
-        CollectorRegistry.defaultRegistry.register(new DropwizardExports(environment.metrics()));
-
-        environment.getApplicationContext().addServlet(MetricsServlet.class, "/metrics");
     }
 
     @Override
@@ -76,6 +72,9 @@ public class Service extends Server<Config> {
     }
 
     protected void onRun(Config config, Environment env) {
+        CollectorRegistry.defaultRegistry.register(new DropwizardExports(env.metrics()));
+        environment.getApplicationContext().addServlet(MetricsServlet.class, "/metrics");
+
         ExecutorService warmup = env.lifecycle().executorService("warmup").build();
         warmup.submit(() -> messageHandler.warmup(getRepo()));
     }
