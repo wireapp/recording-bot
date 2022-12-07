@@ -397,6 +397,9 @@ public class MessageHandler extends MessageHandlerBase {
                 int records = eventsDAO.clear(conversationId);
                 client.send(new MessageText(String.format("Deleted %d messages", records)), userId);
             }
+
+            // Delete the Poll message
+            client.send(new MessageDelete(pollId));
         } catch (Exception e) {
             Logger.exception(e, "handlePollAction: %s", client.getId());
         }
@@ -458,6 +461,7 @@ public class MessageHandler extends MessageHandlerBase {
                 poll.addButton("yes", "Yes");
                 poll.addButton("no", "No");
                 client.send(poll, userId);
+                return true;
             }
             case "/public": {
                 channelsDAO.insert(convId, botId);

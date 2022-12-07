@@ -32,6 +32,10 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import java.util.concurrent.ExecutorService;
 
+import io.prometheus.client.CollectorRegistry;
+import io.prometheus.client.dropwizard.DropwizardExports;
+import io.prometheus.client.exporter.MetricsServlet;
+
 public class Service extends Server<Config> {
     public static Service instance;
 
@@ -56,6 +60,10 @@ public class Service extends Server<Config> {
 
         Application<Config> application = bootstrap.getApplication();
         instance = (Service) application;
+
+        CollectorRegistry.defaultRegistry.register(new DropwizardExports(environment.metrics()));
+
+        environment.getApplicationContext().addServlet(MetricsServlet.class, "/metrics");
     }
 
     @Override
