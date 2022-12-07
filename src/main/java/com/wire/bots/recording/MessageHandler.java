@@ -13,9 +13,7 @@ import com.wire.bots.recording.utils.PdfGenerator;
 import com.wire.lithium.ClientRepo;
 import com.wire.xenon.MessageHandlerBase;
 import com.wire.xenon.WireClient;
-import com.wire.xenon.assets.FileAsset;
-import com.wire.xenon.assets.FileAssetPreview;
-import com.wire.xenon.assets.MessageText;
+import com.wire.xenon.assets.*;
 import com.wire.xenon.backend.models.Conversation;
 import com.wire.xenon.backend.models.Member;
 import com.wire.xenon.backend.models.NewBot;
@@ -183,7 +181,9 @@ public class MessageHandler extends MessageHandlerBase {
 
             persist(convId, userId, botId, messageId, type, msg);
 
-            kibana(type, msg, client);
+            if (config.kibana) {
+                kibana(type, msg, client);
+            }
         } catch (Exception e) {
             Logger.exception(e, "OnText: %s", client.getId());
         }
@@ -204,10 +204,15 @@ public class MessageHandler extends MessageHandlerBase {
 
         try {
             persist(convId, userId, botId, messageId, type, msg);
-            /* UUID replacingMessageId = msg.getReplacingMessageId();
-               int update = eventsDAO.update(replacingMessageId, type, payload);
-             */
-            kibana(type, msg, client);
+
+            if (config.edit) {
+                UUID replacingMessageId = msg.getReplacingMessageId();
+                eventsDAO.update(replacingMessageId, type, msg.getText());
+            }
+
+            if (config.kibana) {
+                kibana(type, msg, client);
+            }
         } catch (Exception e) {
             Logger.exception(e, "onEditText: %s", client.getId());
         }
@@ -222,7 +227,10 @@ public class MessageHandler extends MessageHandlerBase {
         String type = "conversation.otr-message-add.delete-text";
 
         persist(convId, userId, botId, messageId, type, msg);
-        //eventsDAO.delete(msg.getDeletedMessageId());
+
+        if (config.delete) {
+            eventsDAO.delete(msg.getDeletedMessageId());
+        }
     }
 
     @Override
@@ -344,13 +352,18 @@ public class MessageHandler extends MessageHandlerBase {
     }
 
     @Override
-    public void onEvent(WireClient client, UUID userId, Messages.GenericMessage genericMessage) {
+    public void onEvent(WireClient client, UUID userId, Messages.GenericMessage event) {
         UUID botId = client.getId();
         UUID convId = client.getConversationId();
 
         Logger.info("onEvent: bot: %s, conv: %s, from: %s", botId, convId, userId);
 
         generateHtml(client, botId, convId);
+
+        // User clicked on a Poll Button
+        if (event.hasButtonAction()) {
+            handlePollAction(client, userId, event);
+        }
     }
 
     private void generateHtml(WireClient client, UUID botId, UUID convId) {
@@ -364,6 +377,28 @@ public class MessageHandler extends MessageHandlerBase {
             }
         } catch (Exception e) {
             Logger.error("generateHtml: %s %s", botId, e);
+        }
+    }
+
+    private void handlePollAction(WireClient client, UUID userId, Messages.GenericMessage event) {
+        try {
+            final UUID conversationId = client.getConversationId();
+            final Messages.ButtonAction action = event.getButtonAction();
+            final UUID pollId = UUID.fromString(action.getReferenceMessageId());
+            final String answer = action.getButtonId();
+
+            ButtonActionConfirmation confirmation = new ButtonActionConfirmation(
+                    pollId,
+                    answer);
+
+            client.send(confirmation, userId);
+
+            if (Objects.equals(answer, "yes")) {
+                int records = eventsDAO.clear(conversationId);
+                client.send(new MessageText(String.format("Deleted %d messages", records)), userId);
+            }
+        } catch (Exception e) {
+            Logger.exception(e, "handlePollAction: %s", client.getId());
         }
     }
 
@@ -416,6 +451,13 @@ public class MessageHandler extends MessageHandlerBase {
                 // Post Asset
                 client.send(fileAsset, userId);
                 return true;
+            }
+            case "/clear": {
+                Poll poll = new Poll();
+                poll.addText("Are you sure you want to delete the whole history for this group?\nThis cannot be undone!");
+                poll.addButton("yes", "Yes");
+                poll.addButton("no", "No");
+                client.send(poll, userId);
             }
             case "/public": {
                 channelsDAO.insert(convId, botId);

@@ -20,6 +20,9 @@ token: ${SERVICE_TOKEN:-}
 apiHost: ${WIRE_API_HOST:-https://prod-nginz-https.wire.com}
 url: ${PUBLIC_URL:-https://recording.services.wire.com}
 salt: ${SALT:-abc}
+kibana: ${KIBANA:-}
+delete: ${DELETE:-}
+edit: ${EDIT:-}
 
 database:
   driverClass: org.postgresql.Driver
