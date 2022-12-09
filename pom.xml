@@ -6,7 +6,7 @@
 
     <artifactId>recording-bot</artifactId>
     <groupId>com.wire.bots</groupId>
-    <version>0.3.3</version>
+    <version>0.3.4</version>
 
     <name>Recording Bot</name>
     <description>Recording Bot Service For Wire</description>
@@ -27,13 +27,14 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <dropwizard.version>2.1.4</dropwizard.version>
-        <lithium.version>3.4.6</lithium.version>
+        <lithium.version>3.4.7</lithium.version>
         <openhtml.version>1.0.10</openhtml.version>
         <prometheus.version>0.16.0</prometheus.version>
         <commonmark.version>0.17.0</commonmark.version>
         <spullara.version>0.9.10</spullara.version>
         <zip4j.version>2.11.2</zip4j.version>
-        <junit.version>5.9.0</junit.version>
+        <jupiter.version>5.9.0</jupiter.version>
+        <junit.version>4.13.2</junit.version>
 
         <maven.test.skip>true</maven.test.skip>
     </properties>
@@ -53,13 +54,13 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>${junit.version}</version>
+            <version>${jupiter.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
-            <version>${junit.version}</version>
+            <version>${jupiter.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -80,7 +81,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.13.2</version>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

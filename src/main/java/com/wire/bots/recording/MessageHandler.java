@@ -86,6 +86,20 @@ public class MessageHandler extends MessageHandlerBase {
     }
 
     @Override
+    public boolean onNewBot(NewBot newBot, String serviceToken) {
+        // Assure there are no other bots in this conversation. If yes then refuse to join
+        for (Member member : newBot.conversation.members) {
+            if (member.service != null) {
+                Logger.warning("Rejecting NewBot. Provider: %s service: %s",
+                        member.service.providerId,
+                        member.service.id);
+                return false; // we don't want to be in a conv if other bots are there.
+            }
+        }
+        return true;
+    }
+
+    @Override
     public void onNewConversation(WireClient client, SystemMessage msg) {
         try {
             client.send(new MessageText(WELCOME_LABEL));
@@ -105,44 +119,22 @@ public class MessageHandler extends MessageHandlerBase {
     }
 
     @Override
-    public void onMemberJoin(WireClient client, SystemMessage msg) {
-        UUID botId = client.getId();
+    public void onConversationDelete(UUID botId, SystemMessage msg) {
+        UUID convId = msg.convId;
+        UUID messageId = msg.id;
+        String type = msg.type;
 
-        Logger.debug("onMemberJoin: %s users: %s", botId, msg.users);
+        persist(convId, null, botId, messageId, type, msg);
 
-        //Collector collector = collect(client, botId);
-        for (UUID memberId : msg.users) {
-            try {
-                Logger.info("onMemberJoin: %s, bot: %s, user: %s", msg.type, botId, memberId);
-
-                client.send(new MessageText(WELCOME_LABEL), memberId);
-                //collector.sendPDF(memberId, "file:/opt");  //todo fix this
-            } catch (Exception e) {
-                Logger.error("onMemberJoin: %s %s", botId, e);
+        // clear the history for this conv if the conversation was deleted by the bot owner
+        try {
+            NewBot state = storageFactory.create(botId).getState();
+            if (!Objects.equals(state.origin.id, msg.from)) {
+                eventsDAO.clear(convId);
             }
+        } catch (Exception e) {
+            Logger.exception(e, "onConversationDelete: %s", botId);
         }
-
-        UUID convId = msg.convId;
-        UUID messageId = msg.id;
-        String type = msg.type;
-
-        //v2
-        persist(convId, null, botId, messageId, type, msg);
-
-        generateHtml(client, botId, convId);
-    }
-
-    @Override
-    public void onMemberLeave(WireClient client, SystemMessage msg) {
-        UUID convId = msg.convId;
-        UUID botId = client.getId();
-        UUID messageId = msg.id;
-        String type = msg.type;
-
-        //v2
-        persist(convId, null, botId, messageId, type, msg);
-
-        generateHtml(client, botId, convId);
     }
 
     @Override
@@ -163,8 +155,31 @@ public class MessageHandler extends MessageHandlerBase {
         UUID messageId = msg.id;
         String type = "conversation.member-leave.bot-removed";
 
-        //v2
         persist(convId, null, botId, messageId, type, msg);
+    }
+
+    @Override
+    public void onMemberJoin(WireClient client, SystemMessage msg) {
+        UUID botId = client.getId();
+        UUID convId = msg.convId;
+        UUID messageId = msg.id;
+        String type = msg.type;
+
+        persist(convId, null, botId, messageId, type, msg);
+
+        generateHtml(client, botId, convId);
+    }
+
+    @Override
+    public void onMemberLeave(WireClient client, SystemMessage msg) {
+        UUID convId = msg.convId;
+        UUID botId = client.getId();
+        UUID messageId = msg.id;
+        String type = msg.type;
+
+        persist(convId, null, botId, messageId, type, msg);
+
+        generateHtml(client, botId, convId);
     }
 
     @Override
