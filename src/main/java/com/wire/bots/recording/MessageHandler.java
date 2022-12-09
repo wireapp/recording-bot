@@ -120,17 +120,11 @@ public class MessageHandler extends MessageHandlerBase {
 
     @Override
     public void onConversationDelete(UUID botId, SystemMessage msg) {
-        UUID convId = msg.convId;
-        UUID messageId = msg.id;
-        String type = msg.type;
-
-        persist(convId, null, botId, messageId, type, msg);
-
         // clear the history for this conv if the conversation was deleted by the bot owner
         try {
             NewBot state = storageFactory.create(botId).getState();
-            if (!Objects.equals(state.origin.id, msg.from)) {
-                eventsDAO.clear(convId);
+            if (Objects.equals(state.origin.id, msg.from)) {
+                eventsDAO.clear( msg.convId);
             }
         } catch (Exception e) {
             Logger.exception(e, "onConversationDelete: %s", botId);
@@ -231,6 +225,26 @@ public class MessageHandler extends MessageHandlerBase {
             }
         } catch (Exception e) {
             Logger.exception(e, "onEditText: %s", client.getId());
+        }
+    }
+
+    @Override
+    public void onButtonClick(WireClient client, ButtonActionMessage msg) {
+        super.onButtonClick(client, msg);
+
+        try {
+            NewBot state = storageFactory.create(client.getId()).getState();
+            UUID owner = state.origin.id;
+
+            if (Objects.equals(owner, msg.getUserId()) && Objects.equals(msg.getButtonId(), "yes")) {
+                int records = eventsDAO.clear(msg.getConversationId());
+                client.send(new MessageText(String.format("Deleted %d messages", records)), msg.getUserId());
+            }
+
+            // Delete the Dialog message
+            client.send(new MessageDelete(msg.getReference()));
+        } catch (Exception e) {
+            Logger.exception(e, "onButtonClick: %s", client.getId());
         }
     }
 
@@ -375,11 +389,6 @@ public class MessageHandler extends MessageHandlerBase {
         Logger.info("onEvent: bot: %s, conv: %s, from: %s", botId, convId, userId);
 
         generateHtml(client, botId, convId);
-
-        // User clicked on a Poll Button
-        if (event.hasButtonAction()) {
-            handlePollAction(client, userId, event);
-        }
     }
 
     private void generateHtml(WireClient client, UUID botId, UUID convId) {
@@ -393,31 +402,6 @@ public class MessageHandler extends MessageHandlerBase {
             }
         } catch (Exception e) {
             Logger.error("generateHtml: %s %s", botId, e);
-        }
-    }
-
-    private void handlePollAction(WireClient client, UUID userId, Messages.GenericMessage event) {
-        try {
-            final UUID conversationId = client.getConversationId();
-            final Messages.ButtonAction action = event.getButtonAction();
-            final UUID pollId = UUID.fromString(action.getReferenceMessageId());
-            final String answer = action.getButtonId();
-
-            ButtonActionConfirmation confirmation = new ButtonActionConfirmation(
-                    pollId,
-                    answer);
-
-            client.send(confirmation, userId);
-
-            if (Objects.equals(answer, "yes")) {
-                int records = eventsDAO.clear(conversationId);
-                client.send(new MessageText(String.format("Deleted %d messages", records)), userId);
-            }
-
-            // Delete the Poll message
-            client.send(new MessageDelete(pollId));
-        } catch (Exception e) {
-            Logger.exception(e, "handlePollAction: %s", client.getId());
         }
     }
 
