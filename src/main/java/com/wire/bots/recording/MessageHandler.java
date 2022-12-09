@@ -104,18 +104,18 @@ public class MessageHandler extends MessageHandlerBase {
         try {
             client.send(new MessageText(WELCOME_LABEL));
             client.send(new MessageText(HELP), msg.from);
+
+            UUID convId = msg.convId;
+            UUID botId = client.getId();
+            UUID messageId = msg.id;
+            String type = msg.type;
+
+            persist(convId, null, botId, messageId, type, msg);
+
+            generateHtml(client, botId, convId);
         } catch (Exception e) {
             Logger.error("onNewConversation: %s %s", client.getId(), e);
         }
-
-        UUID convId = msg.convId;
-        UUID botId = client.getId();
-        UUID messageId = msg.id;
-        String type = msg.type;
-
-        persist(convId, null, botId, messageId, type, msg);
-
-        generateHtml(client, botId, convId);
     }
 
     @Override
@@ -124,7 +124,8 @@ public class MessageHandler extends MessageHandlerBase {
         try {
             NewBot state = storageFactory.create(botId).getState();
             if (Objects.equals(state.origin.id, msg.from)) {
-                eventsDAO.clear( msg.convId);
+                int clear = eventsDAO.clear(msg.convId);
+                Logger.warning("onConversationDelete: %s deleted %d messages", msg.convId, clear);
             }
         } catch (Exception e) {
             Logger.exception(e, "onConversationDelete: %s", botId);
