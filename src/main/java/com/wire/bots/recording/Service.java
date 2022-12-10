@@ -21,7 +21,6 @@ import com.wire.bots.recording.DAO.ChannelsDAO;
 import com.wire.bots.recording.DAO.EventsDAO;
 import com.wire.bots.recording.model.Config;
 import com.wire.bots.recording.utils.ImagesBundle;
-
 import com.wire.lithium.Server;
 import com.wire.xenon.MessageHandlerBase;
 import io.dropwizard.Application;
@@ -30,11 +29,11 @@ import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
-import java.util.concurrent.ExecutorService;
-
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.dropwizard.DropwizardExports;
 import io.prometheus.client.exporter.MetricsServlet;
+
+import java.util.concurrent.ExecutorService;
 
 public class Service extends Server<Config> {
     public static Service instance;
@@ -77,10 +76,5 @@ public class Service extends Server<Config> {
 
         ExecutorService warmup = env.lifecycle().executorService("warmup").build();
         warmup.submit(() -> messageHandler.warmup(getRepo()));
-    }
-
-    @Override
-    protected void messageResource() {
-        addResource(new TestMessageResource());
     }
 }

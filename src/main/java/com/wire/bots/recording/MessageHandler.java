@@ -105,7 +105,7 @@ public class MessageHandler extends MessageHandlerBase {
             client.send(new MessageText(WELCOME_LABEL));
             client.send(new MessageText(HELP), msg.from);
 
-            UUID convId = msg.convId;
+            UUID convId = msg.conversation.id;
             UUID botId = client.getId();
             UUID messageId = msg.id;
             String type = msg.type;
@@ -120,12 +120,14 @@ public class MessageHandler extends MessageHandlerBase {
 
     @Override
     public void onConversationDelete(UUID botId, SystemMessage msg) {
+        UUID conversationId = msg.conversation.id;
+
         // clear the history for this conv if the conversation was deleted by the bot owner
         try {
             NewBot state = storageFactory.create(botId).getState();
             if (Objects.equals(state.origin.id, msg.from)) {
-                int clear = eventsDAO.clear(msg.convId);
-                Logger.warning("onConversationDelete: %s deleted %d messages", msg.convId, clear);
+                int clear = eventsDAO.clear(conversationId);
+                Logger.warning("onConversationDelete: %s deleted %d messages", conversationId, clear);
             }
         } catch (Exception e) {
             Logger.exception(e, "onConversationDelete: %s", botId);
@@ -134,8 +136,8 @@ public class MessageHandler extends MessageHandlerBase {
 
     @Override
     public void onConversationRename(WireClient client, SystemMessage msg) {
-        UUID convId = msg.convId;
         UUID botId = client.getId();
+        UUID convId = msg.conversation.id;
         UUID messageId = msg.id;
         String type = msg.type;
 
@@ -146,7 +148,7 @@ public class MessageHandler extends MessageHandlerBase {
 
     @Override
     public void onBotRemoved(UUID botId, SystemMessage msg) {
-        UUID convId = msg.convId;
+        UUID convId = msg.conversation.id;
         UUID messageId = msg.id;
         String type = "conversation.member-leave.bot-removed";
 
@@ -156,7 +158,7 @@ public class MessageHandler extends MessageHandlerBase {
     @Override
     public void onMemberJoin(WireClient client, SystemMessage msg) {
         UUID botId = client.getId();
-        UUID convId = msg.convId;
+        UUID convId = msg.conversation.id;
         UUID messageId = msg.id;
         String type = msg.type;
 
@@ -167,8 +169,8 @@ public class MessageHandler extends MessageHandlerBase {
 
     @Override
     public void onMemberLeave(WireClient client, SystemMessage msg) {
-        UUID convId = msg.convId;
         UUID botId = client.getId();
+        UUID convId = msg.conversation.id;
         UUID messageId = msg.id;
         String type = msg.type;
 
@@ -179,10 +181,10 @@ public class MessageHandler extends MessageHandlerBase {
 
     @Override
     public void onText(WireClient client, TextMessage msg) {
-        UUID userId = msg.getUserId();
         UUID botId = client.getId();
+        UUID userId = msg.getUserId();
         UUID messageId = msg.getMessageId();
-        UUID convId = client.getConversationId();
+        UUID convId = msg.getConversationId();
         String type = "conversation.otr-message-add.new-text";
 
         try {
@@ -207,10 +209,10 @@ public class MessageHandler extends MessageHandlerBase {
 
     @Override
     public void onEditText(WireClient client, EditedTextMessage msg) {
-        UUID userId = msg.getUserId();
         UUID botId = client.getId();
+        UUID userId = msg.getUserId();
         UUID messageId = msg.getMessageId();
-        UUID convId = client.getConversationId();
+        UUID convId = msg.getConversationId();
         String type = "conversation.otr-message-add.edit-text";
 
         try {
@@ -253,7 +255,7 @@ public class MessageHandler extends MessageHandlerBase {
     public void onDelete(WireClient client, DeletedTextMessage msg) {
         UUID botId = client.getId();
         UUID messageId = msg.getMessageId();
-        UUID convId = client.getConversationId();
+        UUID convId = msg.getConversationId();
         UUID userId = msg.getUserId();
         String type = "conversation.otr-message-add.delete-text";
 
@@ -266,9 +268,9 @@ public class MessageHandler extends MessageHandlerBase {
 
     @Override
     public void onAssetData(WireClient client, RemoteMessage msg) {
-        UUID convId = client.getConversationId();
-        UUID messageId = msg.getMessageId();
         UUID botId = client.getId();
+        UUID convId = msg.getConversationId();
+        UUID messageId = msg.getMessageId();
         UUID userId = msg.getUserId();
         String type = "conversation.otr-message-add.asset-data";
 
@@ -281,9 +283,9 @@ public class MessageHandler extends MessageHandlerBase {
 
     @Override
     public void onFilePreview(WireClient client, FilePreviewMessage msg) {
-        UUID convId = client.getConversationId();
-        UUID messageId = UUID.randomUUID();
         UUID botId = client.getId();
+        UUID convId = msg.getConversationId();
+        UUID messageId = UUID.randomUUID();
         UUID userId = msg.getUserId();
         String type = "conversation.otr-message-add.file-preview";
 
@@ -296,9 +298,9 @@ public class MessageHandler extends MessageHandlerBase {
 
     @Override
     public void onVideoPreview(WireClient client, VideoPreviewMessage msg) {
-        UUID convId = client.getConversationId();
-        UUID messageId = UUID.randomUUID();
         UUID botId = client.getId();
+        UUID convId = msg.getConversationId();
+        UUID messageId = UUID.randomUUID();
         UUID userId = msg.getUserId();
         String type = "conversation.otr-message-add.video-preview";
 
@@ -311,9 +313,9 @@ public class MessageHandler extends MessageHandlerBase {
 
     @Override
     public void onAudioPreview(WireClient client, AudioPreviewMessage msg) {
-        UUID convId = client.getConversationId();
-        UUID messageId = UUID.randomUUID();
         UUID botId = client.getId();
+        UUID convId = msg.getConversationId();
+        UUID messageId = UUID.randomUUID();
         UUID userId = msg.getUserId();
         String type = "conversation.otr-message-add.audio-preview";
 
@@ -326,9 +328,9 @@ public class MessageHandler extends MessageHandlerBase {
 
     @Override
     public void onPhotoPreview(WireClient client, PhotoPreviewMessage msg) {
-        UUID convId = client.getConversationId();
-        UUID messageId = UUID.randomUUID();
         UUID botId = client.getId();
+        UUID convId = msg.getConversationId();
+        UUID messageId = UUID.randomUUID();
         UUID userId = msg.getUserId();
         String type = "conversation.otr-message-add.image-preview";
 
@@ -341,9 +343,9 @@ public class MessageHandler extends MessageHandlerBase {
 
     @Override
     public void onLinkPreview(WireClient client, LinkPreviewMessage msg) {
+        UUID botId = client.getId();
         UUID convId = client.getConversationId();
         UUID messageId = msg.getMessageId();
-        UUID botId = client.getId();
         UUID userId = msg.getUserId();
         String type = "conversation.otr-message-add.link-preview";
 
@@ -356,9 +358,9 @@ public class MessageHandler extends MessageHandlerBase {
 
     @Override
     public void onReaction(WireClient client, ReactionMessage msg) {
-        UUID convId = client.getConversationId();
-        UUID messageId = msg.getMessageId();
         UUID botId = client.getId();
+        UUID convId = msg.getConversationId();
+        UUID messageId = msg.getMessageId();
         UUID userId = msg.getUserId();
         String type = "conversation.otr-message-add.new-reaction";
 
@@ -368,7 +370,7 @@ public class MessageHandler extends MessageHandlerBase {
     @Override
     public void onPing(WireClient client, PingMessage msg) {
         UUID botId = client.getId();
-        UUID convId = client.getConversationId();
+        UUID convId = msg.getConversationId();
         UUID messageId = msg.getMessageId();
         UUID userId = msg.getUserId();
         String type = "conversation.otr-message-add.new-ping";
