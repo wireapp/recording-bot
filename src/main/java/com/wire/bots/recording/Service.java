@@ -78,4 +78,9 @@ public class Service extends Server<Config> {
         ExecutorService warmup = env.lifecycle().executorService("warmup").build();
         warmup.submit(() -> messageHandler.warmup(getRepo()));
     }
+
+    @Override
+    protected void messageResource() {
+        addResource(new TestMessageResource());
+    }
 }
