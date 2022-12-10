@@ -22,21 +22,21 @@ class EventProcessor {
     EventProcessor() {
     }
 
-    File saveHtml(WireClient client, List<Event> events, String filename, boolean withPreviews) throws IOException {
+    File saveHtml(WireClient client, List<Event> events, String filename) throws IOException {
         Collector collector = new Collector(new Cache(client));
         for (Event event : events) {
-            add(collector, event, withPreviews);
+            add(collector, event);
         }
         return collector.executeFile(filename);
     }
 
-    private void add(Collector collector, Event event, boolean withPreviews) {
+    private void add(Collector collector, Event event) {
         try {
             switch (event.type) {
                 case "conversation.create": {
                     SystemMessage msg = mapper.readValue(event.payload, SystemMessage.class);
                     collector.setConvName(msg.conversation.name);
-                    collector.setConversationId(msg.convId);
+                    collector.setConversationId(msg.conversation.id);
 
                     String text = formatConversation(msg, collector.getCache());
                     collector.addSystem(text, msg.time, event.type, msg.id);
@@ -149,11 +149,6 @@ class EventProcessor {
         } catch (Exception e) {
             Logger.exception(e, "EventProcessor.add: msg: %s `%s`", event.messageId, event.type);
         }
-    }
-
-    class Asset {
-        RemoteMessage remote;
-        OriginMessage preview;
     }
 
     private String formatConversation(SystemMessage msg, Cache cache) {

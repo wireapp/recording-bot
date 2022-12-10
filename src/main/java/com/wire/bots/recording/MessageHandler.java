@@ -70,7 +70,7 @@ public class MessageHandler extends MessageHandlerBase {
                     try (WireClient client = repo.getClient(botId)) {
                         String filename = getConversationPath(convId);
                         List<Event> events = eventsDAO.listAllAsc(convId);
-                        File file = eventProcessor.saveHtml(client, events, filename, false);
+                        File file = eventProcessor.saveHtml(client, events, filename);
                         Logger.debug("warmed up: %s", file.getName());
                         Thread.sleep(2 * 1000);
                     } catch (IOException e) {
@@ -400,7 +400,7 @@ public class MessageHandler extends MessageHandlerBase {
                 List<Event> events = eventsDAO.listAllAsc(convId);
                 String filename = getConversationPath(convId);
 
-                File file = eventProcessor.saveHtml(client, events, filename, false);
+                File file = eventProcessor.saveHtml(client, events, filename);
                 assert file.exists();
             }
         } catch (Exception e) {
@@ -424,7 +424,7 @@ public class MessageHandler extends MessageHandlerBase {
                 String filename = getConversationPath(convId);
                 List<Event> events = eventsDAO.listAllAsc(convId);
 
-                File file = eventProcessor.saveHtml(client, events, filename, true);
+                File file = eventProcessor.saveHtml(client, events, filename);
                 String html = Util.readFile(file);
 
                 String convName = client.getConversation().name;
