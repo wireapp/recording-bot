@@ -8,7 +8,7 @@ server:
 logging:
   level: INFO
   loggers:
-    "com.wire.xenon.tools.logger": ${LOG_LEVEL:-INFO}
+    "com.wire.bots.logger": ${LOG_LEVEL:-INFO}
 
 swagger:
   resourcePackage: com.wire.bots.sdk.server.resources
