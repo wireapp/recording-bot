@@ -8,12 +8,10 @@ import com.wire.bots.recording.model.Config;
 import com.wire.bots.recording.model.Event;
 import com.wire.bots.recording.model.Log;
 import com.wire.bots.recording.utils.Cache;
-import com.wire.bots.recording.utils.Helper;
-import com.wire.bots.recording.utils.PdfGenerator;
-import com.wire.lithium.ClientRepo;
 import com.wire.xenon.MessageHandlerBase;
 import com.wire.xenon.WireClient;
-import com.wire.xenon.assets.*;
+import com.wire.xenon.assets.MessageDelete;
+import com.wire.xenon.assets.MessageText;
 import com.wire.xenon.backend.models.Conversation;
 import com.wire.xenon.backend.models.Member;
 import com.wire.xenon.backend.models.NewBot;
@@ -22,67 +20,40 @@ import com.wire.xenon.exceptions.HttpException;
 import com.wire.xenon.factories.StorageFactory;
 import com.wire.xenon.models.*;
 import com.wire.xenon.tools.Logger;
-import com.wire.xenon.tools.Util;
+import org.jdbi.v3.core.Jdbi;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import static com.wire.bots.recording.CommandManager.HELP;
+import static com.wire.bots.recording.CommandManager.WELCOME_LABEL;
 import static com.wire.bots.recording.utils.Helper.date;
+import static com.wire.bots.recording.utils.Helper.getConversationPath;
 
 public class MessageHandler extends MessageHandlerBase {
     private final ObjectMapper mapper = new ObjectMapper();
 
-    private static final String WELCOME_LABEL = "This conversation has _recording_ enabled";
-    private static final String HELP = "Available commands:\n" +
-            "`/pdf`     - receive previous messages in PDF format\n" +
-            "`/public`  - publish this conversation\n" +
-            "`/private` - stop publishing this conversation\n" +
-            "`/clear`   - clear the history";
-
-    private final ChannelsDAO channelsDAO;
-    private final StorageFactory storageFactory;
-    private final EventsDAO eventsDAO;
-
-    private final EventProcessor eventProcessor = new EventProcessor();
     private final Config config;
 
-    MessageHandler(EventsDAO eventsDAO, ChannelsDAO channelsDAO, StorageFactory storageFactory) {
-        this.eventsDAO = eventsDAO;
-        this.channelsDAO = channelsDAO;
-        this.storageFactory = storageFactory;
-        config = Service.instance.getConfig();
-    }
+    private final EventsDAO eventsDAO;
 
-    void warmup(ClientRepo repo) {
-        Logger.info("Warming up...");
-        List<UUID> conversations = channelsDAO.listConversations();
-        for (UUID convId : conversations) {
-            try {
-                UUID botId = channelsDAO.getBotId(convId);
-                if (botId != null) {
-                    try (WireClient client = repo.getClient(botId)) {
-                        String filename = getConversationPath(convId);
-                        List<Event> events = eventsDAO.listAllAsc(convId);
-                        File file = eventProcessor.saveHtml(client, events, filename);
-                        Logger.debug("warmed up: %s", file.getName());
-                        Thread.sleep(2 * 1000);
-                    } catch (IOException e) {
-                        Logger.warning("warmup: %s %s.. removing the bot", convId, e);
-                        channelsDAO.delete(convId);
-                    }
-                }
-            } catch (Exception e) {
-                Logger.error("warmup: %s %s", convId, e);
-            }
-        }
-        Logger.info("Finished Warming up %d convs", conversations.size());
+    private final StorageFactory storageFactory;
+
+    private final CommandManager commandManager;
+    private final ChannelsDAO channelsDAO;
+
+    MessageHandler(Jdbi jdbi, StorageFactory storageFactory, CommandManager commandManager) {
+        config = Service.instance.getConfig();
+        eventsDAO = jdbi.onDemand(EventsDAO.class);
+        channelsDAO = jdbi.onDemand(ChannelsDAO.class);
+
+        this.storageFactory = storageFactory;
+
+        this.commandManager = commandManager;
     }
 
     @Override
@@ -126,6 +97,8 @@ public class MessageHandler extends MessageHandlerBase {
         try {
             NewBot state = storageFactory.create(botId).getState();
             if (Objects.equals(state.origin.id, msg.from)) {
+                commandManager.onPrivate(conversationId);
+
                 int clear = eventsDAO.clear(conversationId);
                 Logger.warning("onConversationDelete: %s deleted %d messages", conversationId, clear);
             }
@@ -153,6 +126,8 @@ public class MessageHandler extends MessageHandlerBase {
         String type = "conversation.member-leave.bot-removed";
 
         persist(convId, null, botId, messageId, type, msg);
+
+        commandManager.onPrivate(convId);
     }
 
     @Override
@@ -188,9 +163,9 @@ public class MessageHandler extends MessageHandlerBase {
         String type = "conversation.otr-message-add.new-text";
 
         try {
-            String cmd = msg.getText().toLowerCase().trim();
-            if (command(client, userId, botId, convId, cmd))
+            if (commandManager.command(client, msg)) {
                 return;
+            }
 
             persist(convId, userId, botId, messageId, type, msg);
 
@@ -242,6 +217,7 @@ public class MessageHandler extends MessageHandlerBase {
             if (Objects.equals(owner, msg.getUserId()) && Objects.equals(msg.getButtonId(), "yes")) {
                 int records = eventsDAO.clear(msg.getConversationId());
                 client.send(new MessageText(String.format("Deleted %d messages", records)), msg.getUserId());
+                commandManager.onPdf(client, msg.getUserId(), msg.getConversationId());
             }
 
             // Delete the Dialog message
@@ -398,127 +374,14 @@ public class MessageHandler extends MessageHandlerBase {
         try {
             if (null != channelsDAO.contains(convId)) {
                 List<Event> events = eventsDAO.listAllAsc(convId);
-                String filename = getConversationPath(convId);
+                String filename = getConversationPath(convId, config.salt);
 
-                File file = eventProcessor.saveHtml(client, events, filename);
+                File file = EventProcessor.saveHtml(client, events, filename);
                 assert file.exists();
             }
         } catch (Exception e) {
             Logger.error("generateHtml: %s %s", botId, e);
         }
-    }
-
-    private boolean command(WireClient client, UUID userId, UUID botId, UUID convId, String cmd) throws Exception {
-        // Only owner of the bot can run commands
-        NewBot state = storageFactory.create(botId).getState();
-        if (!Objects.equals(state.origin.id, userId))
-            return false;
-
-        switch (cmd) {
-            case "/help": {
-                client.send(new MessageText(HELP), userId);
-                return true;
-            }
-            case "/pdf": {
-                client.send(new MessageText("Generating PDF..."), userId);
-                String filename = getConversationPath(convId);
-                List<Event> events = eventsDAO.listAllAsc(convId);
-
-                File file = eventProcessor.saveHtml(client, events, filename);
-                String html = Util.readFile(file);
-
-                String convName = client.getConversation().name;
-                if (convName == null) {
-                    convName = "Recording";
-                }
-
-                String pdfFilename = String.format("html/%s.pdf", URLEncoder.encode(convName, StandardCharsets.UTF_8));
-                String baseUrl = "file:/opt/recording";
-                File pdfFile = PdfGenerator.save(pdfFilename, html, baseUrl);
-
-                // Post the Preview
-                UUID messageId = UUID.randomUUID();
-                String mimeType = "application/pdf";
-                client.send(new FileAssetPreview(pdfFile.getName(), mimeType, pdfFile.length(), messageId), userId);
-
-                FileAsset fileAsset = new FileAsset(pdfFile, mimeType, messageId);
-
-                // Upload Asset
-                AssetKey assetKey = client.uploadAsset(fileAsset);
-                fileAsset.setAssetKey(assetKey.id);
-                fileAsset.setAssetToken(assetKey.token);
-                fileAsset.setDomain(assetKey.domain);
-
-                Logger.info("Asset: key: %s, token: %s, domain: %s",
-                        fileAsset.getAssetKey(),
-                        fileAsset.getAssetToken(),
-                        fileAsset.getDomain());
-
-                // Post Asset
-                client.send(fileAsset, userId);
-                return true;
-            }
-            case "/clear": {
-                Poll poll = new Poll();
-                poll.addText("Are you sure you want to delete the whole history for this group?\nThis cannot be undone!");
-                poll.addButton("yes", "Yes");
-                poll.addButton("no", "No");
-                client.send(poll, userId);
-                return true;
-            }
-            case "/public": {
-                channelsDAO.insert(convId, botId);
-                String key = Helper.key(convId.toString(), config.salt);
-                String text = String.format("%s/channel/%s.html", config.url, key);
-                client.send(new MessageText(text), userId);
-                return true;
-            }
-            case "/private": {
-                channelsDAO.delete(convId);
-
-                // Delete downloaded assets
-                File assetDir = getAssetDir(convId);
-                deleteDir(assetDir);
-
-                // Delete the html file
-                String filename = getConversationPath(convId);
-                File htmlFile = new File(filename);
-                boolean delete = htmlFile.delete();
-
-                String txt = String.format("%s deleted: %s", htmlFile.getPath(), delete);
-                client.send(new MessageText(txt), userId);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private void deleteDir(File assetDir) {
-        File[] files = assetDir.listFiles();
-        if (files == null)
-            return;
-
-        for (File f : files) {
-            if (f.isFile()) {
-                boolean delete = f.delete();
-                if (delete) {
-                    String filename = f.getName();
-                    String name = filename.split("\\.")[0];
-                    Cache.removeAsset(name);
-                }
-                Logger.info("Deleted file: %s %s", f.getAbsolutePath(), delete);
-            }
-        }
-    }
-
-    private File getAssetDir(UUID convId) throws NoSuchAlgorithmException {
-        String key = Helper.key(convId.toString(), config.salt);
-        return new File(String.format("assets/%s", key));
-    }
-
-    private String getConversationPath(UUID convId) throws NoSuchAlgorithmException {
-        String key = Helper.key(convId.toString(), config.salt);
-        return String.format("html/%s.html", key);
     }
 
     private void persist(UUID convId, UUID senderId, UUID userId, UUID msgId, String type, Object msg)
