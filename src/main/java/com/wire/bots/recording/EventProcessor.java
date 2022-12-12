@@ -17,26 +17,23 @@ import java.util.List;
 import java.util.UUID;
 
 class EventProcessor {
-    private final ObjectMapper mapper = new ObjectMapper();
+    private static final ObjectMapper mapper = new ObjectMapper();
 
-    EventProcessor() {
-    }
-
-    File saveHtml(WireClient client, List<Event> events, String filename, boolean withPreviews) throws IOException {
+    public static File saveHtml(WireClient client, List<Event> events, String filename) throws IOException {
         Collector collector = new Collector(new Cache(client));
         for (Event event : events) {
-            add(collector, event, withPreviews);
+            add(collector, event);
         }
         return collector.executeFile(filename);
     }
 
-    private void add(Collector collector, Event event, boolean withPreviews) {
+    private static void add(Collector collector, Event event) {
         try {
             switch (event.type) {
                 case "conversation.create": {
                     SystemMessage msg = mapper.readValue(event.payload, SystemMessage.class);
                     collector.setConvName(msg.conversation.name);
-                    collector.setConversationId(msg.convId);
+                    collector.setConversationId(msg.conversation.id);
 
                     String text = formatConversation(msg, collector.getCache());
                     collector.addSystem(text, msg.time, event.type, msg.id);
@@ -151,12 +148,7 @@ class EventProcessor {
         }
     }
 
-    class Asset {
-        RemoteMessage remote;
-        OriginMessage preview;
-    }
-
-    private String formatConversation(SystemMessage msg, Cache cache) {
+    private static String formatConversation(SystemMessage msg, Cache cache) {
         StringBuilder sb = new StringBuilder();
         User user = cache.getUser(msg.from);
         sb.append(String.format("**%s** started recording in **%s** with: \n",

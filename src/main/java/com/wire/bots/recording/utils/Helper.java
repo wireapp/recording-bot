@@ -94,4 +94,32 @@ public class Helper {
         String encode = Base64.getEncoder().encodeToString(messageDigest.digest());
         return encode.replaceAll("[^a-zA-Z0-9]?", "");
     }
+
+    public static File getAssetDir(UUID convId, String salt) throws NoSuchAlgorithmException {
+        String key = Helper.key(convId.toString(), salt);
+        return new File(String.format("assets/%s", key));
+    }
+
+    public static String getConversationPath(UUID convId, String salt) throws NoSuchAlgorithmException {
+        String key = Helper.key(convId.toString(), salt);
+        return String.format("html/%s.html", key);
+    }
+
+    public static void deleteDir(File assetDir) {
+        File[] files = assetDir.listFiles();
+        if (files == null)
+            return;
+
+        for (File f : files) {
+            if (f.isFile()) {
+                boolean delete = f.delete();
+                if (delete) {
+                    String filename = f.getName();
+                    String name = filename.split("\\.")[0];
+                    Cache.removeAsset(name);
+                }
+                Logger.info("Deleted file: %s %s", f.getAbsolutePath(), delete);
+            }
+        }
+    }
 }
