@@ -46,14 +46,14 @@ public class MessageHandler extends MessageHandlerBase {
     private final CommandManager commandManager;
     private final ChannelsDAO channelsDAO;
 
-    MessageHandler(Jdbi jdbi, StorageFactory storageFactory, CommandManager commandManager) {
+    MessageHandler(Jdbi jdbi, StorageFactory storageFactory) {
         config = Service.instance.getConfig();
         eventsDAO = jdbi.onDemand(EventsDAO.class);
         channelsDAO = jdbi.onDemand(ChannelsDAO.class);
 
         this.storageFactory = storageFactory;
 
-        this.commandManager = commandManager;
+        this.commandManager = new CommandManager(jdbi, storageFactory);
     }
 
     @Override
@@ -215,9 +215,11 @@ public class MessageHandler extends MessageHandlerBase {
             UUID owner = state.origin.id;
 
             if (Objects.equals(owner, msg.getUserId()) && Objects.equals(msg.getButtonId(), "yes")) {
+                // send PDF for the record prior to deleting all events
+                commandManager.onPdf(client, msg.getUserId(), msg.getConversationId());
+
                 int records = eventsDAO.clear(msg.getConversationId());
                 client.send(new MessageText(String.format("Deleted %d messages", records)), msg.getUserId());
-                commandManager.onPdf(client, msg.getUserId(), msg.getConversationId());
             }
 
             // Delete the Dialog message

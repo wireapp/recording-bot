@@ -21,7 +21,6 @@ import com.wire.bots.recording.model.Config;
 import com.wire.bots.recording.utils.ImagesBundle;
 import com.wire.lithium.Server;
 import com.wire.xenon.MessageHandlerBase;
-import com.wire.xenon.factories.StorageFactory;
 import io.dropwizard.Application;
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
@@ -60,9 +59,7 @@ public class Service extends Server<Config> {
 
     @Override
     protected MessageHandlerBase createHandler(Config config, Environment env) {
-        StorageFactory storageFactory = getStorageFactory();
-        CommandManager commandManager = new CommandManager(getJdbi(), storageFactory);
-        return new MessageHandler(getJdbi(), storageFactory, commandManager);
+        return new MessageHandler(getJdbi(), getStorageFactory());
     }
 
     protected void onRun(Config config, Environment env) {
