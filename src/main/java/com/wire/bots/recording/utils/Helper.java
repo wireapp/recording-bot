@@ -12,6 +12,8 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
@@ -100,9 +102,13 @@ public class Helper {
         return new File(String.format("assets/%s", key));
     }
 
-    public static String getConversationPath(UUID convId, String salt) throws NoSuchAlgorithmException {
+    public static String getHtmlFilename(UUID convId, String salt) throws NoSuchAlgorithmException {
         String key = Helper.key(convId.toString(), salt);
         return String.format("html/%s.html", key);
+    }
+
+    public static String getPdfFilename(String convName) {
+        return String.format("html/%s.pdf", URLEncoder.encode(convName, StandardCharsets.UTF_8));
     }
 
     public static void deleteDir(File assetDir) {

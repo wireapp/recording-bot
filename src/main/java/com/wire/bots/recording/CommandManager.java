@@ -20,8 +20,6 @@ import com.wire.xenon.tools.Util;
 import org.jdbi.v3.core.Jdbi;
 
 import java.io.File;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Objects;
@@ -37,6 +35,7 @@ public class CommandManager {
             "`/public`  - publish this conversation\n" +
             "`/private` - stop publishing this conversation\n" +
             "`/clear`   - clear the history";
+    public static final String HOME_DIR = "file:/opt/recording";
 
     private final ChannelsDAO channelsDAO;
     private final EventsDAO eventsDAO;
@@ -97,20 +96,20 @@ public class CommandManager {
 
     public void onPdf(WireClient client, UUID userId, UUID convId) throws Exception {
         client.send(new MessageText("Generating PDF..."), userId);
-        String filename = getConversationPath(convId, config.salt);
+
+        String filename = getHtmlFilename(convId, config.salt);
         List<Event> events = eventsDAO.listAllAsc(convId);
 
-        File file = EventProcessor.saveHtml(client, events, filename);
-        String html = Util.readFile(file);
+        File htmlFile = EventProcessor.saveHtml(client, events, filename);
+        String html = Util.readFile(htmlFile);
 
         String convName = client.getConversation().name;
         if (convName == null) {
             convName = "Recording";
         }
 
-        String pdfFilename = String.format("html/%s.pdf", URLEncoder.encode(convName, StandardCharsets.UTF_8));
-        String baseUrl = "file:/opt/recording";
-        File pdfFile = PdfGenerator.save(pdfFilename, html, baseUrl);
+        String pdfFilename = getPdfFilename(convName);
+        File pdfFile = PdfGenerator.save(pdfFilename, html, HOME_DIR);
 
         // Post the Preview
         UUID messageId = UUID.randomUUID();
@@ -132,6 +131,9 @@ public class CommandManager {
 
         // Post Asset
         client.send(fileAsset, userId);
+
+        pdfFile.delete();
+        htmlFile.delete();
     }
 
     public void onPrivate(UUID convId) {
@@ -143,7 +145,7 @@ public class CommandManager {
             deleteDir(assetDir);
 
             // Delete the html file
-            String filename = getConversationPath(convId, config.salt);
+            String filename = getHtmlFilename(convId, config.salt);
             File htmlFile = new File(filename);
             htmlFile.delete();
         } catch (NoSuchAlgorithmException e) {
