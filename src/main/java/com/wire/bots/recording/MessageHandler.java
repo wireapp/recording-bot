@@ -218,6 +218,9 @@ public class MessageHandler extends MessageHandlerBase {
                 // send PDF for the record prior to deleting all events
                 commandManager.onPdf(client, msg.getUserId(), msg.getConversationId());
 
+                // make the channel private if it was public
+                commandManager.onPrivate(msg.getConversationId());
+
                 int records = eventsDAO.clear(msg.getConversationId());
                 client.send(new MessageText(String.format("Deleted %d messages", records)), msg.getUserId());
             }
