@@ -3,7 +3,10 @@ package com.wire.bots.recording;
 import com.wire.bots.recording.utils.Collector;
 import com.wire.bots.recording.utils.PdfGenerator;
 import com.wire.bots.recording.utils.TestCache;
-import com.wire.xenon.models.*;
+import com.wire.xenon.models.EditedTextMessage;
+import com.wire.xenon.models.ReactionMessage;
+import com.wire.xenon.models.RemoteMessage;
+import com.wire.xenon.models.TextMessage;
 import com.wire.xenon.tools.Logger;
 import com.wire.xenon.tools.Util;
 import org.junit.Test;
@@ -46,23 +49,6 @@ public class ConversationTemplateTest {
     private static RemoteMessage img(UUID userId, String time, String key, String mimeType) {
         RemoteMessage ret = new RemoteMessage(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), "", userId, time,
                 key, "", null,null);
-        return ret;
-    }
-
-    private static VideoMessage vid(UUID userId, String time, String key, String mimeType) {
-        VideoMessage ret = new VideoMessage(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), "", userId, time);
-        ret.setAssetKey(key);
-        ret.setMimeType(mimeType);
-        ret.setHeight(568);
-        ret.setWidth(320);
-        return ret;
-    }
-
-    private static AttachmentMessage attachment(UUID userId, String time, String key, String name, String mimeType) {
-        AttachmentMessage ret = new AttachmentMessage(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), "", userId, time);
-        ret.setAssetKey(key);
-        ret.setMimeType(mimeType);
-        ret.setName(name);
         return ret;
     }
 

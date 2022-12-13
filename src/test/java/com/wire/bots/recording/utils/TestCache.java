@@ -27,10 +27,12 @@ public class TestCache extends Cache {
         
         if (userId.equals(ConversationTemplateTest.dejan)) {
             ret.name = "Dejan";
+            ret.handle = "dejan";
             ret.accent = 7;
 
         } else {
             ret.name = "Lipis";
+            ret.handle = "lipis";
             ret.accent = 1;
         }
         return ret;
