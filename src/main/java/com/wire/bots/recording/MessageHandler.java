@@ -191,11 +191,11 @@ public class MessageHandler extends MessageHandlerBase {
         String type = "conversation.otr-message-add.edit-text";
 
         try {
-            persist(convId, userId, botId, messageId, type, msg);
-
             if (config.edit) {
                 UUID replacingMessageId = msg.getReplacingMessageId();
-                eventsDAO.update(replacingMessageId, type, msg.getText());
+                eventsDAO.update(replacingMessageId, "conversation.otr-message-add.new-text", msg.getText());
+            } else {
+                persist(convId, userId, botId, messageId, type, msg);
             }
 
             if (config.kibana) {
