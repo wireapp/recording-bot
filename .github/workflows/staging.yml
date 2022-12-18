@@ -71,6 +71,7 @@ jobs:
         env:
           GKE_CLUSTER: dagobah
           GKE_ZONE: europe-west1-c
+          USE_GKE_GCLOUD_AUTH_PLUGIN: True
         run: |
           gcloud container clusters get-credentials "$GKE_CLUSTER" --zone "$GKE_ZONE"
 
