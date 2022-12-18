@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
-import static com.wire.bots.recording.utils.Helper.getConversationPath;
+import static com.wire.bots.recording.utils.Helper.getHtmlFilename;
 
 public class Startup {
     private final ChannelsDAO channelsDAO;
@@ -35,7 +35,7 @@ public class Startup {
                 UUID botId = channelsDAO.getBotId(convId);
                 if (botId != null) {
                     try (WireClient client = repo.getClient(botId)) {
-                        String filename = getConversationPath(convId, config.salt);
+                        String filename = getHtmlFilename(convId, config.salt);
                         List<Event> events = eventsDAO.listAllAsc(convId);
                         File file = EventProcessor.saveHtml(client, events, filename);
                         Logger.debug("warmed up: %s", file.getName());

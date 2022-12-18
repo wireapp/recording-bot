@@ -130,42 +130,6 @@ public class Collector {
         addSystem(text, message.getTime(), "file-preview", message.getMessageId());
     }
 
-    public void add(RemoteMessage event, VideoPreviewMessage preview) throws Exception {
-        Message message = new Message();
-        message.id = event.getMessageId();
-        message.timeStamp = event.getTime();
-
-        File file = cache.getAssetFile(event);
-        message.video = new Video();
-        message.video.url = "/" + file.getPath();
-        message.video.width = preview.getWidth();
-        message.video.height = preview.getHeight();
-        message.video.mimeType = preview.getMimeType();
-
-        Sender sender = sender(event.getUserId());
-        sender.add(message);
-
-        append(sender, message, event.getTime());
-    }
-
-    public Sender add(RemoteMessage event, String name) throws Exception {
-        Message message = new Message();
-        message.id = event.getMessageId();
-        message.timeStamp = event.getTime();
-
-        File file = cache.getAssetFile(event);
-        String assetFilename = "/" + file.getPath();
-
-        message.attachment = new Attachment();
-        message.attachment.name = String.format("%s (%s)", name, event.getAssetId());
-        message.attachment.url = "file://" + assetFilename;
-
-        Sender sender = sender(event.getUserId());
-        sender.add(message);
-
-        return append(sender, message, event.getTime());
-    }
-
     public void add(ReactionMessage event) {
         UUID userId = event.getUserId();
         UUID reactionMessageId = event.getReactionMessageId();
@@ -249,6 +213,7 @@ public class Collector {
         User user = cache.getUser(userId);
         Sender sender = new Sender();
         sender.senderId = userId;
+        sender.handle = "@" + user.handle;
         sender.name = user.name;
         sender.accent = toColor(user.accent);
         sender.avatar = getAvatar(user.id);
@@ -471,6 +436,7 @@ public class Collector {
     }
 
     public static class Sender {
+        String handle;
         UUID senderId;
         String avatar;
         String name;

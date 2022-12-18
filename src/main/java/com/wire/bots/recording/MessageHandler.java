@@ -32,7 +32,7 @@ import java.util.UUID;
 import static com.wire.bots.recording.CommandManager.HELP;
 import static com.wire.bots.recording.CommandManager.WELCOME_LABEL;
 import static com.wire.bots.recording.utils.Helper.date;
-import static com.wire.bots.recording.utils.Helper.getConversationPath;
+import static com.wire.bots.recording.utils.Helper.getHtmlFilename;
 
 public class MessageHandler extends MessageHandlerBase {
     private final ObjectMapper mapper = new ObjectMapper();
@@ -191,11 +191,11 @@ public class MessageHandler extends MessageHandlerBase {
         String type = "conversation.otr-message-add.edit-text";
 
         try {
-            persist(convId, userId, botId, messageId, type, msg);
-
             if (config.edit) {
                 UUID replacingMessageId = msg.getReplacingMessageId();
-                eventsDAO.update(replacingMessageId, type, msg.getText());
+                eventsDAO.update(replacingMessageId, "conversation.otr-message-add.new-text", msg.getText());
+            } else {
+                persist(convId, userId, botId, messageId, type, msg);
             }
 
             if (config.kibana) {
@@ -217,6 +217,9 @@ public class MessageHandler extends MessageHandlerBase {
             if (Objects.equals(owner, msg.getUserId()) && Objects.equals(msg.getButtonId(), "yes")) {
                 // send PDF for the record prior to deleting all events
                 commandManager.onPdf(client, msg.getUserId(), msg.getConversationId());
+
+                // make the channel private if it was public
+                commandManager.onPrivate(msg.getConversationId());
 
                 int records = eventsDAO.clear(msg.getConversationId());
                 client.send(new MessageText(String.format("Deleted %d messages", records)), msg.getUserId());
@@ -376,7 +379,7 @@ public class MessageHandler extends MessageHandlerBase {
         try {
             if (null != channelsDAO.contains(convId)) {
                 List<Event> events = eventsDAO.listAllAsc(convId);
-                String filename = getConversationPath(convId, config.salt);
+                String filename = getHtmlFilename(convId, config.salt);
 
                 File file = EventProcessor.saveHtml(client, events, filename);
                 assert file.exists();
