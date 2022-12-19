@@ -52,6 +52,10 @@ jobs:
           build-args: |
             release_version=${{ env.RELEASE_VERSION }}
 
+      - name: Enable auth plugin
+        run: |
+          echo "USE_GKE_GCLOUD_AUTH_PLUGIN=True" >> $GITHUB_ENV
+
       # Auth to GKE
       - name: Authenticate to GKE
         uses: google-github-actions/auth@v1
@@ -64,9 +68,11 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v1
 
-      # Configure Docker to use the gcloud command-line tool
-      - name: Configure Docker Google cloud
+      # Prepare componenet
+      - name: Prepare gcloud componenets
         run: |
+          gcloud components install gke-gcloud-auth-plugin
+          gcloud components update
           gcloud --quiet auth configure-docker
 
       # Get the GKE credentials, so we can deploy to the cluster
