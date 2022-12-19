@@ -75,34 +75,43 @@ jobs:
           export SED_PREPARED=$(echo $IMAGE  | awk '{ gsub("/", "\\/", $1); print "eu.gcr.io\\/"$1 }')
           # update final yaml
           sed -i".bak" "s/image: $SED_PREPARED.*/image: $SED_PREPARED:$VERSION/g" "$SERVICE.yaml"
-          # delete bakup file
+          # delete backup file
           rm "$SERVICE.yaml.bak"
-      # Setup gcloud CLI
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v0
-        with:
-          service_account_email: kubernetes-deployment-agent@wire-bot.iam.gserviceaccount.com
-          service_account_key: ${{ secrets.GKE_SA_KEY }}
-          project_id: wire-bot
-          export_default_credentials: true
 
-      # Configure Docker to use the gcloud command-line tool
-      - name: Configure Docker Google cloud
+      - name: Enable auth plugin
         run: |
+          echo "USE_GKE_GCLOUD_AUTH_PLUGIN=True" >> $GITHUB_ENV
+
+      # Auth to GKE
+      - name: Authenticate to GKE
+        uses: google-github-actions/auth@v1
+        with:
+          project_id: wire-bot
+          credentials_json: ${{ secrets.GKE_SA_KEY }}
+          service_account: kubernetes-deployment-agent@wire-bot.iam.gserviceaccount.com
+
+      # Prepare components
+      - name: Prepare gcloud components
+        run: |
+          gcloud components install gke-gcloud-auth-plugin
+          gcloud components update
           gcloud --quiet auth configure-docker
-      # Get the GKE credentials so we can deploy to the cluster
+
+      # Get the GKE credentials, so we can deploy to the cluster
       - name: Obtain k8s credentials
         env:
           GKE_CLUSTER: anayotto
           GKE_ZONE: europe-west1-c
         run: |
           gcloud container clusters get-credentials "$GKE_CLUSTER" --zone "$GKE_ZONE"
+
       # K8s is set up, deploy the app
       - name: Deploy the Service
         env:
           SERVICE: ${{ env.SERVICE_NAME }}
         run: |
           kubectl apply -f "rubicon/prod/services/$SERVICE/$SERVICE.yaml"
+
       # Commit all data to Rubicon and open PR
       - name: Create Rubicon Pull Request
         uses: peter-evans/create-pull-request@v3
