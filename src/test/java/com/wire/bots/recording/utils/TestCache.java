@@ -44,7 +44,7 @@ public class TestCache extends Cache {
     }
 
     @Override
-    File getAssetFile(RemoteMessage message) {
+    File getAssetFile(RemoteMessage message, String channelName) {
         return new File(String.format("src/test/resources/avatars/%s.png", message.getAssetId()));
     }
 

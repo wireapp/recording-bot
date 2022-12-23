@@ -9,14 +9,15 @@ import java.util.List;
 import java.util.UUID;
 
 public interface ChannelsDAO {
-    @SqlUpdate("INSERT INTO Channels (conversationId, botId) " +
-            "VALUES (:conversationId, :botId) ON CONFLICT (conversationId) DO NOTHING")
+    @SqlUpdate("INSERT INTO Channels (conversationId, botId, name, time) " +
+            "VALUES (:conversationId, :botId, :name, CURRENT_TIMESTAMP) ON CONFLICT (conversationId) DO " +
+            "UPDATE SET name = EXCLUDED.name")
     int insert(@Bind("conversationId") UUID conversationId,
-               @Bind("botId") UUID botId);
+               @Bind("botId") UUID botId,
+               @Bind("name") String name);
 
-    @SqlQuery("SELECT conversationId AS UUID FROM Channels WHERE conversationId = :conversationId")
-    @RegisterColumnMapper(UUIDResultSetMapper.class)
-    UUID contains(@Bind("conversationId") UUID conversationId);
+    @SqlQuery("SELECT url FROM Channels WHERE conversationId = :conversationId")
+    String getName(@Bind("conversationId") UUID conversationId);
 
     @SqlQuery("SELECT botId AS UUID FROM Channels WHERE conversationId = :conversationId")
     @RegisterColumnMapper(UUIDResultSetMapper.class)

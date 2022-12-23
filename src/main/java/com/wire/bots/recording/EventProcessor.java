@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wire.bots.recording.model.Event;
 import com.wire.bots.recording.utils.Cache;
 import com.wire.bots.recording.utils.Collector;
+import com.wire.bots.recording.utils.Helper;
 import com.wire.xenon.WireClient;
 import com.wire.xenon.backend.models.Member;
 import com.wire.xenon.backend.models.SystemMessage;
@@ -13,18 +14,51 @@ import com.wire.xenon.tools.Logger;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
 class EventProcessor {
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    public static File saveHtml(WireClient client, List<Event> events, String filename) throws IOException {
-        Collector collector = new Collector(new Cache(client));
+    private static final HashMap<UUID, Collector> collectors = new HashMap<>();
+
+    public static File saveHtml(Collector collector, List<Event> events) throws IOException {
         for (Event event : events) {
             add(collector, event);
         }
-        return collector.executeFile(filename);
+        String htmlFilename = Helper.getHtmlFilename(collector.getChannelName());
+        return collector.executeFile(htmlFilename);
+    }
+
+    public static File saveHtml(UUID convId, List<Event> events) throws IOException {
+        Collector collector = collectors.get(convId);
+        for (Event event : events) {
+            add(collector, event);
+        }
+        String htmlFilename = Helper.getHtmlFilename(collector.getChannelName());
+        return collector.executeFile(htmlFilename);
+    }
+
+    public static void add(UUID convId, Event event) {
+        Collector collector = collectors.get(convId);
+        add(collector, event);
+    }
+
+    public static void register(WireClient client, String channelName) {
+        UUID conversationId = client.getConversationId();
+        Collector collector = new Collector(conversationId, channelName, new Cache(client));
+        collectors.put(conversationId, collector);
+    }
+
+    public static void saveHtml(UUID convId) {
+        try {
+            Collector collector = collectors.get(convId);
+            String htmlFilename = Helper.getHtmlFilename(collector.getChannelName());
+            collector.executeFile(htmlFilename);
+        } catch (IOException e) {
+            Logger.exception(e, "saveHtml: %s", convId);
+        }
     }
 
     private static void add(Collector collector, Event event) {

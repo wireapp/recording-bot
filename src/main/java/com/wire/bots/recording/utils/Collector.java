@@ -20,6 +20,7 @@ import java.util.regex.Pattern;
 
 public class Collector {
     private static final MustacheFactory mf = new DefaultMustacheFactory();
+    private String channelName;
     private final Cache cache;
     private final LinkedList<Day> days = new LinkedList<>();
     private final HashMap<UUID, Message> messagesHashMap = new HashMap<>();
@@ -31,8 +32,9 @@ public class Collector {
     private UUID conversationId;
     public Details details;
 
-    public Collector(Cache cache) {
-
+    public Collector(UUID conversationId, String channelName, Cache cache) {
+        this.conversationId = conversationId;
+        this.channelName = channelName;
         this.cache = cache;
     }
 
@@ -107,7 +109,7 @@ public class Collector {
         message.id = event.getMessageId();
         message.timeStamp = event.getTime();
 
-        File file = cache.getAssetFile(event);
+        File file = cache.getAssetFile(event, channelName);
 
         if (file.getName().endsWith(".xyz")) {
             // attachment
@@ -337,6 +339,10 @@ public class Collector {
 
     public Cache getCache() {
         return cache;
+    }
+
+    public String getChannelName() {
+        return channelName;
     }
 
     public static class Conversation {

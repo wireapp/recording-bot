@@ -22,17 +22,14 @@ import com.wire.xenon.models.*;
 import com.wire.xenon.tools.Logger;
 import org.jdbi.v3.core.Jdbi;
 
-import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 import static com.wire.bots.recording.CommandManager.HELP;
 import static com.wire.bots.recording.CommandManager.WELCOME_LABEL;
 import static com.wire.bots.recording.utils.Helper.date;
-import static com.wire.bots.recording.utils.Helper.getHtmlFilename;
 
 public class MessageHandler extends MessageHandlerBase {
     private final ObjectMapper mapper = new ObjectMapper();
@@ -82,8 +79,6 @@ public class MessageHandler extends MessageHandlerBase {
             String type = msg.type;
 
             persist(convId, null, botId, messageId, type, msg);
-
-            generateHtml(client, botId, convId);
         } catch (Exception e) {
             Logger.error("onNewConversation: %s %s", client.getId(), e);
         }
@@ -115,8 +110,6 @@ public class MessageHandler extends MessageHandlerBase {
         String type = msg.type;
 
         persist(convId, null, botId, messageId, type, msg);
-
-        generateHtml(client, botId, convId);
     }
 
     @Override
@@ -138,8 +131,6 @@ public class MessageHandler extends MessageHandlerBase {
         String type = msg.type;
 
         persist(convId, null, botId, messageId, type, msg);
-
-        generateHtml(client, botId, convId);
     }
 
     @Override
@@ -150,8 +141,6 @@ public class MessageHandler extends MessageHandlerBase {
         String type = msg.type;
 
         persist(convId, null, botId, messageId, type, msg);
-
-        generateHtml(client, botId, convId);
     }
 
     @Override
@@ -366,26 +355,19 @@ public class MessageHandler extends MessageHandlerBase {
     }
 
     @Override
-    public void onEvent(WireClient client, UUID userId, Messages.GenericMessage event) {
+    public void onEvent(WireClient client, UUID userId, Messages.GenericMessage message) {
         UUID botId = client.getId();
         UUID convId = client.getConversationId();
 
         Logger.info("onEvent: bot: %s, conv: %s, from: %s", botId, convId, userId);
 
-        generateHtml(client, botId, convId);
-    }
-
-    private void generateHtml(WireClient client, UUID botId, UUID convId) {
-        try {
-            if (null != channelsDAO.contains(convId)) {
-                List<Event> events = eventsDAO.listAllAsc(convId);
-                String filename = getHtmlFilename(convId, config.salt);
-
-                File file = EventProcessor.saveHtml(client, events, filename);
-                assert file.exists();
+        if (channelsDAO.getBotId(convId) != null) {
+            UUID messageId = UUID.fromString(message.getMessageId());
+            Event event = eventsDAO.get(messageId);
+            if (event != null) {
+                EventProcessor.add(convId, event);
+                EventProcessor.saveHtml(convId);
             }
-        } catch (Exception e) {
-            Logger.error("generateHtml: %s %s", botId, e);
         }
     }
 

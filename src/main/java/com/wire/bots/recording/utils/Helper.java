@@ -16,6 +16,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -36,10 +37,7 @@ public class Helper {
         return save(image, file);
     }
 
-    static File saveAsset(String convKey, byte[] image, String assetKey, String mimeType) throws Exception {
-        File file = assetFile(convKey, assetKey, mimeType);
-        return save(image, file);
-    }
+    static Random rnd = new SecureRandom();
 
     private static File save(byte[] image, File file) throws IOException {
         try (DataOutputStream os = new DataOutputStream(new FileOutputStream(file))) {
@@ -49,15 +47,9 @@ public class Helper {
         return file;
     }
 
-    static File assetFile(String convKey, String assetKey, String mimeType) {
-        String extension = getExtension(mimeType);
-        if (extension.isEmpty())
-            extension = "error";
-        String dirName = String.format("assets/%s", convKey);
-        File dir = new File(dirName);
-        dir.mkdir();
-        String filename = String.format("%s/%s.%s", dirName, assetKey, extension);
-        return new File(filename);
+    static File saveAsset(String channelName, byte[] image, String assetKey, String mimeType) throws Exception {
+        File file = assetFile(channelName, assetKey, mimeType);
+        return save(image, file);
     }
 
     static String getExtension(String mimeType) {
@@ -97,18 +89,35 @@ public class Helper {
         return encode.replaceAll("[^a-zA-Z0-9]?", "");
     }
 
-    public static File getAssetDir(UUID convId, String salt) throws NoSuchAlgorithmException {
-        String key = Helper.key(convId.toString(), salt);
-        return new File(String.format("assets/%s", key));
-    }
-
-    public static String getHtmlFilename(UUID convId, String salt) throws NoSuchAlgorithmException {
-        String key = Helper.key(convId.toString(), salt);
-        return String.format("html/%s.html", key);
+    static File assetFile(String channelName, String assetKey, String mimeType) {
+        String extension = getExtension(mimeType);
+        if (extension.isEmpty())
+            extension = "error";
+        String dirName = String.format("assets/%s", channelName);
+        File dir = new File(dirName);
+        dir.mkdir();
+        String filename = String.format("%s/%s.%s", dirName, assetKey, extension);
+        return new File(filename);
     }
 
     public static String getPdfFilename(String convName) {
         return String.format("html/%s.pdf", URLEncoder.encode(convName, StandardCharsets.UTF_8));
+    }
+
+    public static File getAssetDir(String channelName) throws NoSuchAlgorithmException {
+        return new File(String.format("assets/%s", channelName));
+    }
+
+    public static String randomName(int len) {
+        final String AB = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+        StringBuilder sb = new StringBuilder(len);
+        for (int i = 0; i < len; i++)
+            sb.append(AB.charAt(rnd.nextInt(AB.length())));
+        return sb.toString();
+    }
+
+    public static String getHtmlFilename(String channelName) {
+        return String.format("html/%s.html", channelName);
     }
 
     public static void deleteDir(File assetDir) {

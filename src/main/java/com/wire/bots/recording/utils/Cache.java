@@ -29,18 +29,17 @@ public class Cache {
         assetsMap.remove(key);
     }
 
-    File getAssetFile(RemoteMessage message) throws NoSuchAlgorithmException {
+    File getAssetFile(RemoteMessage message, String channelName) throws NoSuchAlgorithmException {
         String salt = Service.instance.getConfig().salt;
         String assetKey = Helper.key(message.getAssetId(), salt);
         return assetsMap.computeIfAbsent(assetKey, k -> {
             try {
-                String convKey = Helper.key(message.getConversationId().toString(), salt);
                 byte[] asset = client.downloadAsset(message.getAssetId(),
                         message.getAssetToken(),
                         message.getSha256(),
                         message.getOtrKey());
                 String mimeType = Util.extractMimeType(asset);
-                return Helper.saveAsset(convKey, asset, assetKey, mimeType);
+                return Helper.saveAsset(channelName, asset, assetKey, mimeType);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

@@ -70,8 +70,9 @@ public class ConversationTemplateTest {
         final String saturday = "2019-07-19T03:57:01.275Z";
         final String saturday2 = "2019-07-19T03:58:01.289Z";
 
+        UUID convId = UUID.randomUUID();
         TestCache cache = new TestCache();
-        Collector collector = new Collector(cache);
+        Collector collector = new Collector(convId, CONV_NAME, cache);
         collector.setConvName(CONV_NAME);
 
         collector.addSystem("**Dejo** started recording in **Recording test** with:\n- **Lipis**", thursday,

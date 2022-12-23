@@ -4,6 +4,8 @@ import com.wire.bots.recording.DAO.ChannelsDAO;
 import com.wire.bots.recording.DAO.EventsDAO;
 import com.wire.bots.recording.model.Config;
 import com.wire.bots.recording.model.Event;
+import com.wire.bots.recording.utils.Cache;
+import com.wire.bots.recording.utils.Collector;
 import com.wire.bots.recording.utils.Helper;
 import com.wire.bots.recording.utils.PdfGenerator;
 import com.wire.xenon.WireClient;
@@ -79,9 +81,15 @@ public class CommandManager {
                 return true;
             }
             case "/public": {
-                channelsDAO.insert(convId, botId);
-                String key = Helper.key(convId.toString(), config.salt);
-                String text = String.format("%s/channel/%s.html", config.url, key);
+                String name = Helper.randomName(8);
+
+                EventProcessor.register(client, name);
+
+                channelsDAO.insert(convId, botId, name);
+                List<Event> events = eventsDAO.listAllAsc(convId);
+                EventProcessor.saveHtml(convId, events);
+
+                String text = String.format("%s/channel/%s.html", config.url, name);
                 client.send(new MessageText(text), userId);
                 return true;
             }
@@ -97,10 +105,12 @@ public class CommandManager {
     public void onPdf(WireClient client, UUID userId, UUID convId) throws Exception {
         client.send(new MessageText("Generating PDF..."), userId);
 
-        String filename = getHtmlFilename(convId, config.salt);
+        String channelsName = channelsDAO.getName(convId);
+
         List<Event> events = eventsDAO.listAllAsc(convId);
 
-        File htmlFile = EventProcessor.saveHtml(client, events, filename);
+        Collector collector = new Collector(client.getConversationId(), channelsName, new Cache(client));
+        File htmlFile = EventProcessor.saveHtml(collector, events);
         String html = Util.readFile(htmlFile);
 
         String convName = client.getConversation().name;
@@ -133,21 +143,23 @@ public class CommandManager {
         client.send(fileAsset, userId);
 
         pdfFile.delete();
-        htmlFile.delete();
+        htmlFile.delete();//todo check if this impacts the channel
     }
 
     public void onPrivate(UUID convId) {
         try {
-            channelsDAO.delete(convId);
+            String channelsName = channelsDAO.getName(convId);
 
             // Delete downloaded assets
-            File assetDir = getAssetDir(convId, config.salt);
+            File assetDir = getAssetDir(channelsName);
             deleteDir(assetDir);
 
             // Delete the html file
-            String filename = getHtmlFilename(convId, config.salt);
+            String filename = getHtmlFilename(channelsName);
             File htmlFile = new File(filename);
             htmlFile.delete();
+
+            channelsDAO.delete(convId);
         } catch (NoSuchAlgorithmException e) {
             Logger.exception(e, "onPrivate: %s", convId);
         }
