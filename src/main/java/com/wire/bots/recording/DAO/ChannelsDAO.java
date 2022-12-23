@@ -16,7 +16,7 @@ public interface ChannelsDAO {
                @Bind("botId") UUID botId,
                @Bind("name") String name);
 
-    @SqlQuery("SELECT url FROM Channels WHERE conversationId = :conversationId")
+    @SqlQuery("SELECT name FROM Channels WHERE conversationId = :conversationId")
     String getName(@Bind("conversationId") UUID conversationId);
 
     @SqlQuery("SELECT botId AS UUID FROM Channels WHERE conversationId = :conversationId")

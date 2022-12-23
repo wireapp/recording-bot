@@ -81,13 +81,17 @@ public class CommandManager {
                 return true;
             }
             case "/public": {
-                String name = Helper.randomName(8);
+                String name = channelsDAO.getName(convId);
 
-                EventProcessor.register(client, name);
+                if (name == null) {
+                    name = Helper.randomName(8);
 
-                channelsDAO.insert(convId, botId, name);
-                List<Event> events = eventsDAO.listAllAsc(convId);
-                EventProcessor.saveHtml(convId, events);
+                    EventProcessor.register(client, name);
+
+                    channelsDAO.insert(convId, botId, name);
+                    List<Event> events = eventsDAO.listAllAsc(convId);
+                    EventProcessor.saveHtml(convId, events);
+                }
 
                 String text = String.format("%s/channel/%s.html", config.url, name);
                 client.send(new MessageText(text), userId);
@@ -105,8 +109,7 @@ public class CommandManager {
     public void onPdf(WireClient client, UUID userId, UUID convId) throws Exception {
         client.send(new MessageText("Generating PDF..."), userId);
 
-        String channelsName = channelsDAO.getName(convId);
-
+        String channelsName = Helper.randomName(8);
         List<Event> events = eventsDAO.listAllAsc(convId);
 
         Collector collector = new Collector(client.getConversationId(), channelsName, new Cache(client));
@@ -143,12 +146,14 @@ public class CommandManager {
         client.send(fileAsset, userId);
 
         pdfFile.delete();
-        htmlFile.delete();//todo check if this impacts the channel
+        htmlFile.delete();
     }
 
     public void onPrivate(UUID convId) {
         try {
             String channelsName = channelsDAO.getName(convId);
+            if (channelsName == null)
+                return;
 
             // Delete downloaded assets
             File assetDir = getAssetDir(channelsName);
