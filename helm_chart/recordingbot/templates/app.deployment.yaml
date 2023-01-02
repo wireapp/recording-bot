@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: recordingbot
+  labels:
+    {{- include "recordingbot.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.app.replica }}
+  selector:
+    matchLabels:
+      app: recordingbot
+  template:
+    metadata:
+      labels:
+        app: recordingbot
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.app.image }}"
+          imagePullPolicy: IfNotPresent
+
+          env:
+            - name: SERVICE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: "recordingbot-secrets"
+                  key: serviceToken
+
+            - name: PUBLIC_URL
+              value: "{{ required "Must specify publicURL" .Values.app.publicURL }}"
+
+            - name: DB_URL
+              value: "{{ required "Must specify publicURL" .Values.app.dbURL }}"
+
+            - name: DB_USER
+              value: "{{ required "Must specify dbUser" .Values.app.dbUser }}"
+
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: "recordingbot-secrets"
+                  key: dbPassword
+
+            - name: APPENDER_TYPE
+              value: json-console
+
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+            - containerPort: 8081
+              protocol: TCP
+
+          livenessProbe:
+            httpGet:
+              path: /status
+              port: 8080
+            initialDelaySeconds: 10
+            timeoutSeconds: 5
+            periodSeconds: 10
+
+          readinessProbe:
+            httpGet:
+              path: /status
+              port: 8080
+            initialDelaySeconds: 10
+            timeoutSeconds: 5
+            periodSeconds: 10
