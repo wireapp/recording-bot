@@ -33,7 +33,7 @@
         <atlasian.version>0.17.0</atlasian.version>
         <commonmark.version>0.21.0</commonmark.version>
         <spullara.version>0.9.10</spullara.version>
-        <zip4j.version>2.11.2</zip4j.version>
+        <zip4j.version>2.11.3</zip4j.version>
         <jupiter.version>5.9.0</jupiter.version>
         <junit.version>4.13.2</junit.version>
 
